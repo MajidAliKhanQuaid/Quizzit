@@ -5,20 +5,28 @@
 }
 
 function GetNextQuestion() {
-    var nextQuestId = document.getElementById("").getAttribute("next-question-id");
+    var questnId = document.getElementById("QuestionID").value;
+    var nextQuestId = document.getElementById("NextQuestion").value;
+    var answer = document.getElementById("Answer").value;
     $.ajax({
-        
-        url: "script.php",
+        url: "/Home/AjaxSave",
         method: "POST",
-        data: { questionId: nextQuestId },
+        data: { QuestionID: questnId, NextQuestion: nextQuestId, Answer: answer },
         dataType: "html",
         success: function (response) {
-            if (response.status === true) {
-                return;
-            }
+            $("._placeholder").html(response);
+            $("#btnQuestion").click(function () {
+                GetNextQuestion();
+            });
         },
         error: function (error) {
 
         }
     })
 }
+
+$(document).ready(function () {
+    $("#btnQuestion").click(function () {
+        GetNextQuestion();
+    });
+});

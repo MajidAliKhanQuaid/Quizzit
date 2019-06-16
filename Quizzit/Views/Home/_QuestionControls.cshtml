@@ -2,74 +2,104 @@
 @using Quizzit.Models;
 
 @{
-    var caption = "Next";
-    if (Model.NextQuestionID == null)
+    var nextQueId = Model.NextQuestionID;
+    if (nextQueId == null)
     {
-        caption = "Submit";
+        nextQueId = int.MinValue;
     }
 }
 
-<div class="row options-region">
-    @if (Model.QuestionType == (int)QuestionType.TextBox)
-    {
-        <div class="col-md-12">
-            <input class="form-control answer" name="Answer" type="text" />
-        </div>
-    }
-    else if (Model.QuestionType == (int)QuestionType.MultilineText)
-    {
-        <div class="col-md-12">
-            <textarea class="form-control answer" name="Answer"></textarea>
-        </div>
-    }
-    else if (Model.QuestionType == (int)QuestionType.Checkbox)
-    {
-        //foreach (var option in question.Options)
-        for (var i = 0; i < Model.QuestionAnswers.Count; i++)
-        {
-            var option = Model.QuestionAnswers.ElementAt(i);
-            <input type="hidden" id="checkboxValue" name="Answer" value="" />
-            <div class="col-md-12">
-                <input type="checkbox" id="chk-@i" class="answer form-radio-check form-checkbox" value="@option.AnswerText" /> <label for="chk-@i">@option.AnswerText</label>
-            </div>
-        }
-    }
-    else if (Model.QuestionType == (int)QuestionType.Radio)
-    {
-        //foreach (var option in question.Options)
-        for (var i = 0; i < Model.QuestionAnswers.Count; i++)
-        {
-            var option = Model.QuestionAnswers.ElementAt(i);
+<input type="hidden" id="QuestionID" value="@Model.ID" />
+<input type="hidden" id="NextQuestion" value="@Model.NextQuestionID" />
 
-            <div class="col-md-12">
-                <input type="radio" id="rad-@i" class="answer form-radio-check" name="Answer" value="@option.AnswerText" /> <label for="rad-@i">@option.AnswerText</label>
-            </div>
-        }
-    }
-    else if (Model.QuestionType == (int)QuestionType.Dropdown)
+<div class="jumbotron question-region fadeIn animated">
+
+    <div class="row">
+        <div class="col-md-11">
+            <p class="lead">
+                @Model.QuestionText
+            </p>
+        </div>
+        <div class="col-md-1 text-right">
+            @if (nextQueId > 0)
+            {
+                @Html.Raw(nextQueId);
+            }
+        </div>
+    </div>
+
+    @if (ViewBag.ErrorMessage != null)
     {
-        <div class="col-md-12">
-            <select class="form-control answer" name="Answer">
-                //foreach (var option in question.Options)
-                @for (var i = 0; i < Model.QuestionAnswers.Count; i++)
-                {
-                    var option = Model.QuestionAnswers.ElementAt(i);
-                    <option value="@option.AnswerText">@option.AnswerText</option>
-                }
-            </select>
+        <div class="alert alert-danger">
+            @ViewBag.ErrorMessage
         </div>
     }
-</div>
-<div class="row submit-button-row">
-    <div class="col-md-offset-11 col-md-1">
-        <input type="submit" class="btn btn-success" value="@caption" />
+
+    <div class="row options-region">
+        @if (Model.QuestionType == (int)QuestionType.TextBox)
+        {
+            <div class="col-md-12">
+                <input class="form-control Answer" id="Answer" name="Answer" type="text" />
+            </div>
+        }
+        else if (Model.QuestionType == (int)QuestionType.MultilineText)
+        {
+            <div class="col-md-12">
+                <textarea class="form-control Answer" id="Answer" name="Answer"></textarea>
+            </div>
+        }
+        else if (Model.QuestionType == (int)QuestionType.Checkbox)
+        {
+            //foreach (var option in question.Options)
+            <input type="hidden" id="Answer" name="Answer" value="" />
+            for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+            {
+                var option = Model.QuestionAnswers.ElementAt(i);
+                <div class="col-md-12">
+                    <input type="checkbox" id="chk-@i" class="form-radio-check form-checkbox" value="@option.AnswerText" /> <label for="chk-@i">@option.AnswerText</label>
+                </div>
+            }
+        }
+        else if (Model.QuestionType == (int)QuestionType.Radio)
+        {
+            //foreach (var option in question.Options)
+            <input type="hidden" id="Answer" name="Answer" value="" />
+            for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+            {
+                var option = Model.QuestionAnswers.ElementAt(i);
+
+                <div class="col-md-12">
+                    <input type="radio" id="rad-@i" class="Answer form-radio-check form-radio" name="Answer" value="@option.AnswerText" /> <label for="rad-@i">@option.AnswerText</label>
+                </div>
+            }
+        }
+        else if (Model.QuestionType == (int)QuestionType.Dropdown)
+        {
+            <div class="col-md-12">
+                <select class="form-control Answer" id="Answer" name="Answer">
+                    //foreach (var option in question.Options)
+                    @for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+                    {
+                        var option = Model.QuestionAnswers.ElementAt(i);
+                        <option value="@option.AnswerText">@option.AnswerText</option>
+                    }
+                </select>
+            </div>
+        }
     </div>
+    <div class="row submit-button-row">
+        <div class="col-md-offset-11 col-md-1">
+            <button type="submit" id="btnQuestion" class="btn btn-success">Next</button>
+        </div>
+    </div>
+
 </div>
+
 
 @if (Model.QuestionType == (int)QuestionType.Checkbox)
 {
     <script type="text/javascript">
-        var chkBoxes = document.getElementsByClassName("answer");
+        var chkBoxes = document.getElementsByClassName("form-checkbox");
         function SetChkBoxValue() {
             var chkValue = [];
             for (var i = 0; i < chkBoxes.length; i++) {
@@ -79,11 +109,33 @@
                 }
             }
             //console.log(chkValue.join(","));
-            document.getElementById("checkboxValue").value = chkValue.join(",");
+            document.getElementById("Answer").value = chkValue.join(",");
         }
 
         for (var i = 0; i < chkBoxes.length; i++) {
             chkBoxes[i].addEventListener('click', SetChkBoxValue);
+        }
+    </script>
+}
+else if (Model.QuestionType == (int)QuestionType.Radio)
+{
+    <script type="text/javascript">
+        var radios = document.getElementsByClassName("form-radio");
+        function SetRadioValue() {
+            var radValue = "";
+            for (var i = 0; i < radios.length; i++) {
+                var r = radios[i];
+                if (r.checked) {
+                    radValue = r.value;
+                    break;
+                }
+            }
+            console.log(radValue);
+            document.getElementById("Answer").value = radValue;
+        }
+
+        for (var i = 0; i < radios.length; i++) {
+            radios[i].addEventListener('click', SetRadioValue);
         }
     </script>
 }

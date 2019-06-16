@@ -104,6 +104,63 @@ namespace Quizzit.Controllers
             //
             return View();
         }
+        
+        [HttpPost]
+        public ActionResult AjaxSave(QuestionFormVM qvm)
+        {
+            if (qvm.Answer == null)
+            {
+                //var question = db.Questions.Find(qvm.QuestionID);
+                var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+                if (question != null)
+                {
+                    if (question.QuestionType == (int)QuestionType.Checkbox ||
+                    question.QuestionType == (int)QuestionType.Radio ||
+                    question.QuestionType == (int)QuestionType.Dropdown)
+                    {
+                        ViewBag.ErrorMessage = "You must have atleast one option selected";
+                    }
+                    else
+                    {
+                        ViewBag.ErrorMessage = "Answer field can not be blank";
+                    }
+                    //
+                    return PartialView("_QuestionControls", question);
+                    //ViewBag.Question = question;
+                    //return View();
+                }
+                return HttpNotFound();
+            }
+            //
+            if (qvm.NextQuestion == int.MinValue)
+            {
+                //var question = db.Questions.Find(qvm.QuestionID);
+                var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+                if (question != null)
+                {
+                    // ************************************
+                    // *********   Save Here    ***********
+                    // ************************************
+                    //return RedirectToAction("Summary");
+                    //
+                    return PartialView("_ShowSummaryLink");
+                }
+                return HttpNotFound();
+            }
+            //
+            //
+            Question nextQues = SearchQuestionById(qvm.NextQuestion);
+            if(nextQues.NextQuestionID == null)
+            {
+                nextQues.NextQuestionID = int.MinValue;
+                return PartialView("_QuestionControls", nextQues);
+            }
+            return PartialView("_QuestionControls", nextQues);
+            //ViewBag.Question = nextQues;
+            ////
+            //return View();
+        }
+
 
         public ActionResult Summary()
         {
