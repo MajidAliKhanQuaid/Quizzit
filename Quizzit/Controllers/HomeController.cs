@@ -107,7 +107,8 @@ namespace Quizzit.Controllers
 
         public ActionResult Summary()
         {
-            return Content("<h1>Summary Page Goes Here</h1>");
+            return View();
+            //return Content("<h1>Summary Page Goes Here</h1>");
         }
 
         //public JsonResult NextQuestion(int questionId)
