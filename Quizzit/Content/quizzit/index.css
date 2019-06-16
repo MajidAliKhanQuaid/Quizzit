@@ -1,0 +1,17 @@
+﻿/*.question-region{
+    height: 500px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}*/
+
+textarea {
+    resize: none;
+}
+
+.jumbotron {
+    background-color: rgba(255, 216, 0, 0.5) !important;
+}
+
+.submit-button-row{
+    margin-top: 20px;
+}

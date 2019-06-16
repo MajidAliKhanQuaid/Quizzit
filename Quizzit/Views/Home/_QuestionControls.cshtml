@@ -1,0 +1,89 @@
+﻿@model Quizzit.Models.Question
+@using Quizzit.Models;
+
+@{
+    var caption = "Next";
+    if (Model.NextQuestionID == null)
+    {
+        caption = "Submit";
+    }
+}
+
+<div class="row options-region">
+    @if (Model.QuestionType == (int)QuestionType.TextBox)
+    {
+        <div class="col-md-12">
+            <input class="form-control answer" name="Answer" type="text" />
+        </div>
+    }
+    else if (Model.QuestionType == (int)QuestionType.MultilineText)
+    {
+        <div class="col-md-12">
+            <textarea class="form-control answer" name="Answer"></textarea>
+        </div>
+    }
+    else if (Model.QuestionType == (int)QuestionType.Checkbox)
+    {
+        //foreach (var option in question.Options)
+        for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+        {
+            var option = Model.QuestionAnswers.ElementAt(i);
+            <input type="hidden" id="checkboxValue" name="Answer" value="" />
+            <div class="col-md-12">
+                <input type="checkbox" id="chk-@i" class="answer form-radio-check form-checkbox" value="@option.AnswerText" /> <label for="chk-@i">@option.AnswerText</label>
+            </div>
+        }
+    }
+    else if (Model.QuestionType == (int)QuestionType.Radio)
+    {
+        //foreach (var option in question.Options)
+        for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+        {
+            var option = Model.QuestionAnswers.ElementAt(i);
+
+            <div class="col-md-12">
+                <input type="radio" id="rad-@i" class="answer form-radio-check" name="Answer" value="@option.AnswerText" /> <label for="rad-@i">@option.AnswerText</label>
+            </div>
+        }
+    }
+    else if (Model.QuestionType == (int)QuestionType.Dropdown)
+    {
+        <div class="col-md-12">
+            <select class="form-control answer" name="Answer">
+                //foreach (var option in question.Options)
+                @for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+                {
+                    var option = Model.QuestionAnswers.ElementAt(i);
+                    <option value="@option.AnswerText">@option.AnswerText</option>
+                }
+            </select>
+        </div>
+    }
+</div>
+<div class="row submit-button-row">
+    <div class="col-md-offset-11 col-md-1">
+        <input type="submit" class="btn btn-success" value="@caption" />
+    </div>
+</div>
+
+@if (Model.QuestionType == (int)QuestionType.Checkbox)
+{
+    <script type="text/javascript">
+        var chkBoxes = document.getElementsByClassName("answer");
+        function SetChkBoxValue() {
+            var chkValue = [];
+            for (var i = 0; i < chkBoxes.length; i++) {
+                var c = chkBoxes[i];
+                if (c.checked) {
+                    chkValue.push(c.value);
+                }
+            }
+            //console.log(chkValue.join(","));
+            document.getElementById("checkboxValue").value = chkValue.join(",");
+        }
+
+        for (var i = 0; i < chkBoxes.length; i++) {
+            chkBoxes[i].addEventListener('click', SetChkBoxValue);
+        }
+    </script>
+}

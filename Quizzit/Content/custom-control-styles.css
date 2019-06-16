@@ -1,0 +1,76 @@
+﻿/*
+    Custom Radio and Checkbox Style
+    Source - http://www.tipue.com/blog/radio-checkbox/
+*/
+
+.form-radio-check {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    position: relative;
+    background-color: #f1f1f1;
+    color: #666;
+    top: 10px;
+    height: 30px;
+    width: 30px;
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-right: 7px;
+    outline: none;
+}
+
+    .form-radio-check:checked::before {
+        position: absolute;
+        font: 13px/1 'Open Sans', sans-serif;
+        left: 11px;
+        top: 7px;
+        content: '\02143';
+        transform: rotate(40deg);
+    }
+
+    .form-radio-check:hover {
+        background-color: #f7f7f7;
+    }
+
+    .form-radio-check:checked {
+        background-color: #f1f1f1;
+    }
+
+    /* edit - form-radio-check:focus */
+
+    .form-radio-check:focus {
+        outline: none !important;
+    }
+
+
+label {
+    font: 15px/1.7 'Open Sans', sans-serif;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: pointer;
+    /* edit */
+    margin-left: 10px;
+}
+
+/*
+    Checkbox Customization
+*/
+
+.form-checkbox {
+    border-radius: 3px;
+}
+
+/* 
+    Text Area Full Width
+    Source - https://stackoverflow.com/questions/39068128/html-textarea-isnt-responsive
+*/
+
+textarea {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+}

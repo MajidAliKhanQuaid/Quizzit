@@ -1,0 +1,53 @@
+﻿@using Quizzit.ViewModel;
+@using Quizzit.Models;
+
+@{
+    ViewBag.Title = "Quizzit";
+    var question = ViewBag.Question as Question;
+}
+
+<link href="~/Content/custom-control-styles.css" rel="stylesheet" />
+<link href="~/Content/animate.min.css" rel="stylesheet" />
+<link href="~/Content/quizzit/index.css" rel="stylesheet" />
+
+@using (Html.BeginForm())
+{
+    // Caption is used label of form-submission
+    
+    var nextQueId = question.NextQuestionID;
+    if (nextQueId == null)
+    {
+        nextQueId = int.MinValue;
+    }
+
+    <input type="hidden" name="QuestionID" value="@question.ID" />
+    <input type="hidden" name="NextQuestion" value="@nextQueId" />
+
+    <div class="jumbotron question-region fadeIn animated">
+
+        <div class="row">
+            <div class="col-md-11">
+                <p class="lead">
+                    @question.QuestionText
+                </p>
+            </div>
+            <div class="col-md-1 text-right">
+                @if(nextQueId > 0)
+                {
+                    @Html.Raw(nextQueId);
+                }
+            </div>
+        </div>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-danger">
+                @ViewBag.ErrorMessage
+            </div>
+        }
+
+        @Html.Partial("_QuestionControls", question)
+
+    </div>
+}
+@Scripts.Render("~/Scripts/quizzit/index.js")
