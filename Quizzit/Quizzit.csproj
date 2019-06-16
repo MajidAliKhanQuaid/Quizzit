@@ -175,7 +175,6 @@
     <Content Include="Content\custom-control-styles.css" />
     <Content Include="Content\images\logo.png" />
     <Content Include="Content\quizzit\index.css" />
-    <Content Include="Delete.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
