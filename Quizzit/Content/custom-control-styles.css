@@ -52,7 +52,7 @@ label {
     -moz-osx-font-smoothing: grayscale;
     cursor: pointer;
     /* edit */
-    margin-left: 10px;
+    padding-left: 10px;
 }
 
 /*
