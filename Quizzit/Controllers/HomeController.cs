@@ -70,11 +70,13 @@ namespace Quizzit.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            LoadQuestionsIfNotExist();
+            //LoadQuestionsIfNotExist();
         }
 
         public ActionResult Index()
         {
+            var questions = db.Questions.ToList();
+            Session["Questions"] = questions;
             // Here Integer Holds Value for Question ID | String accounts for the Answer
             Session["AnsweredQuestions"] = new Dictionary<int, string>();
             //Session["UserID"] = DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year +
@@ -185,17 +187,22 @@ namespace Quizzit.Controllers
                     {
                         dictQA.Add(qvm.QuestionID, qvm.Answer);
                     }
+                    int UserID = Convert.ToInt32(Session["UserID"]);
                     bool isDirty = false;
+                    //
+                    db.QuestionAndAnswers.RemoveRange(db.QuestionAndAnswers.Where(x => x.UserID == UserID));
+                    //
                     foreach (var item in dictQA)
                     {
                         QuestionAndAnswer qs = new QuestionAndAnswer();
                         //
-                        qs.UserID = Convert.ToInt32(Session["UserID"]);
+                        qs.UserID = UserID;
                         //
                         qs.QuestionsAndAnswers = $"{item.Key.ToString().PadRight(5, ' ')}{item.Value}";
                         db.QuestionAndAnswers.Add(qs);
                         isDirty = true;
                     }
+                    //
                     if (isDirty)
                     {
                         db.SaveChanges();
