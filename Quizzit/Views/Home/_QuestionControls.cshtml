@@ -89,19 +89,36 @@
         }
     </div>
     <div class="row submit-button-row">
-        <div class="col-md-offset-11 col-md-1">
+        <div class="col-md-2">
+            @{
+                if (Model.PrevQuestionID > int.MinValue)
+                {
+                    <button type="submit" id="btnBack" class="btn btn-success">Previous</button>
+                }
+            }
+        </div>
+        <div class="col-md-offset-8 col-md-2">
             @{
                 var caption = "Next";
                 if (Model.NextQuestionID == int.MinValue)
                 {
                     caption = "Submit";
                 }
-            } 
+            }
             <button type="submit" id="btnQuestion" class="btn btn-success">@caption</button>
         </div>
     </div>
 
 </div>
+
+@if (Model.PrevQuestionID > int.MinValue)
+{
+    <script type="text/javascript">
+        $("#btnBack").click(function () {
+            GetPrevQuestion();
+        });
+    </script>
+}
 
 @if (Model.QuestionType == (int)QuestionType.Checkbox)
 {

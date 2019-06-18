@@ -79,55 +79,94 @@ namespace Quizzit.Controllers
             {
                 return Content("There're no questions in the database");
             }
+            Question prevQues = db.Questions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
+            if(prevQues == null)
+            {
+                question.PrevQuestionID = int.MinValue;
+            }
+            else
+            {
+                question.PrevQuestionID = prevQues.ID;
+            }
             ViewBag.Question = question;
             return View();
         }
 
-        [ActionName("Index")]
+        //[ActionName("Index")]
+        //[HttpPost]
+        //public ActionResult SaveAnswer(QuestionFormVM qvm)
+        //{
+        //    if (qvm.Answer == null)
+        //    {
+        //        //var question = db.Questions.Find(qvm.QuestionID);
+        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+        //        if (question != null)
+        //        {
+        //            if (question.QuestionType == (int)QuestionType.Checkbox ||
+        //            question.QuestionType == (int)QuestionType.Radio ||
+        //            question.QuestionType == (int)QuestionType.Dropdown)
+        //            {
+        //                ViewBag.ErrorMessage = "You must have atleast one option selected";
+        //            }
+        //            else
+        //            {
+        //                ViewBag.ErrorMessage = "Answer field can not be blank";
+        //            }
+        //            //
+        //            ViewBag.Question = question;
+        //            return View();
+        //        }
+        //        return Content("Question could be recognized by the system");
+        //    }
+        //    //
+        //    if (qvm.NextQuestion == int.MinValue)
+        //    {
+        //        //var question = db.Questions.Find(qvm.QuestionID);
+        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+        //        if (question != null)
+        //        {
+        //            // ************************************
+        //            // *********   Save Here    ***********
+        //            // ************************************
+        //            return RedirectToAction("Summary");
+        //        }
+        //        return Content("Question could be recognized by the system");
+        //    }
+        //    //
+        //    Question nextQues = SearchQuestionById(qvm.NextQuestion);
+        //    ViewBag.Question = nextQues;
+        //    //
+        //    return View();
+        //}
+
         [HttpPost]
-        public ActionResult SaveAnswer(QuestionFormVM qvm)
+        public JsonResult AjaxSave2(QuestionFormVM qvm)
         {
-            if (qvm.Answer == null)
+            string viewAsString = "";
+            // Get Previous
+            // Load This Question
+            // Search for its previous and return
+
+            var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.PrevQuestion);
+            if (question != null)
             {
-                //var question = db.Questions.Find(qvm.QuestionID);
-                var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-                if (question != null)
-                {
-                    if (question.QuestionType == (int)QuestionType.Checkbox ||
-                    question.QuestionType == (int)QuestionType.Radio ||
-                    question.QuestionType == (int)QuestionType.Dropdown)
-                    {
-                        ViewBag.ErrorMessage = "You must have atleast one option selected";
-                    }
-                    else
-                    {
-                        ViewBag.ErrorMessage = "Answer field can not be blank";
-                    }
-                    //
-                    ViewBag.Question = question;
-                    return View();
+                Question prevQues = db.Questions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
+                if(prevQues == null){
+                    question.PrevQuestionID = int.MinValue;
                 }
-                return Content("Question could be recognized by the system");
-            }
-            //
-            if (qvm.NextQuestion == int.MinValue)
-            {
-                //var question = db.Questions.Find(qvm.QuestionID);
-                var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-                if (question != null)
+                else
                 {
-                    // ************************************
-                    // *********   Save Here    ***********
-                    // ************************************
-                    return RedirectToAction("Summary");
+                    question.PrevQuestionID = prevQues.ID;
                 }
-                return Content("Question could be recognized by the system");
+                viewAsString = RenderViewAsString("_QuestionControls", question);
+                return Json(new { status = true, view = viewAsString });
+                //return PartialView("_QuestionControls", question);
             }
+            return Json(new { status = false });
             //
-            Question nextQues = SearchQuestionById(qvm.NextQuestion);
-            ViewBag.Question = nextQues;
-            //
-            return View();
+            //viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
+            //return Json(new { status = true, view = viewAsString });
+            //return PartialView("_QuestionControls", objQuestion);
         }
 
 
@@ -185,6 +224,11 @@ namespace Quizzit.Controllers
             {
                 objQuestion.PrevQuestionID = int.MinValue;
             }
+            else
+            {
+                objQuestion.PrevQuestionID = prevQues.ID;
+            }
+            //
             if (objQuestion.NextQuestionID == null)
             {
                 objQuestion.NextQuestionID = int.MinValue;

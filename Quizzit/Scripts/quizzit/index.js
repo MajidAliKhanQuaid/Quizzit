@@ -4,6 +4,41 @@
     return div;
 }
 
+
+function GetPrevQuestion() {
+    var prevQuestId = document.getElementById("PrevQuestion").value;
+    var questnId = document.getElementById("QuestionID").value;
+    var nextQuestId = document.getElementById("NextQuestion").value;
+    var answer = document.getElementById("Answer").value;
+    $.ajax({
+        url: "/Home/AjaxSave2",
+        method: "POST",
+        data: { PrevQuestion: prevQuestId, QuestionID: questnId, NextQuestion: nextQuestId, Answer: answer },
+        dataType: "html",
+        success: function (response) {
+            response = JSON.parse(response);
+            debugger;
+            if (response.status === true) {
+                if (response.view) {
+                    $("._placeholder").html(response.view);
+                    $("#btnBack").click(function () {
+                        GetPrevQuestion();
+                    });
+                    $("#btnQuestion").click(function () {
+                        GetNextQuestion();
+                    });
+                }
+                return;
+            }
+            alert("Request could not be processed !");
+        },
+        error: function (error) {
+
+        }
+    })
+}
+
+
 function GetNextQuestion() {
     var questnId = document.getElementById("QuestionID").value;
     var nextQuestId = document.getElementById("NextQuestion").value;
