@@ -9,6 +9,7 @@ namespace Quizzit.ViewModel
 {
     public class QuestionFormVM
     {
+        public int PrevQuestion { get; set; }
         public int QuestionID { get; set; }
         public int NextQuestion { get; set; }
         [Required]

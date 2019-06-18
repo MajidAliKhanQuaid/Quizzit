@@ -14,10 +14,21 @@ function GetNextQuestion() {
         data: { QuestionID: questnId, NextQuestion: nextQuestId, Answer: answer },
         dataType: "html",
         success: function (response) {
-            $("._placeholder").html(response);
-            $("#btnQuestion").click(function () {
-                GetNextQuestion();
-            });
+            response = JSON.parse(response);
+            debugger;
+            if (response.status === true) {
+                if (response.view) {
+                    $("._placeholder").html(response.view);
+                    $("#btnQuestion").click(function () {
+                        GetNextQuestion();
+                    });
+                }
+                else {
+                    window.location.href = response.url;
+                }
+                return;
+            }
+            alert("Request could not be processed !");
         },
         error: function (error) {
 

@@ -9,6 +9,7 @@
     }
 }
 
+<input type="hidden" id="PrevQuestion" value="@Model.PrevQuestionID" />
 <input type="hidden" id="QuestionID" value="@Model.ID" />
 <input type="hidden" id="NextQuestion" value="@Model.NextQuestionID" />
 
@@ -89,12 +90,18 @@
     </div>
     <div class="row submit-button-row">
         <div class="col-md-offset-11 col-md-1">
-            <button type="submit" id="btnQuestion" class="btn btn-success">Next</button>
+            @{
+                var caption = "Next";
+                if (Model.NextQuestionID == int.MinValue)
+                {
+                    caption = "Submit";
+                }
+            } 
+            <button type="submit" id="btnQuestion" class="btn btn-success">@caption</button>
         </div>
     </div>
 
 </div>
-
 
 @if (Model.QuestionType == (int)QuestionType.Checkbox)
 {

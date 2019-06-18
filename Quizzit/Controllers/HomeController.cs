@@ -1,10 +1,11 @@
 ﻿using Quizzit.Models;
 using Quizzit.ViewModel;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web.Mvc;
+using System.Web.UI;
 
 namespace Quizzit.Controllers
 {
@@ -25,6 +26,30 @@ namespace Quizzit.Controllers
         private Question SearchQuestionById(int qid)
         {
             return db.Questions.Find(qid);
+        }
+
+
+        public string RenderViewAsString(string viewName, object model)
+        {
+            string viewAsString = "";
+
+            if (string.IsNullOrEmpty(viewName))
+                viewName = ControllerContext.RouteData.GetRequiredString("action");
+
+            var viewResult = ViewEngines.Engines.FindPartialView(ControllerContext, viewName);
+            PartialViewResult pvr = PartialView(viewName, model);
+            ViewDataDictionary dDict = new ViewDataDictionary(model);
+            StringBuilder sb = new StringBuilder();
+            using (StringWriter writer = new StringWriter(sb))
+            {
+                using(HtmlTextWriter markupWriter = new HtmlTextWriter(writer))
+                {
+                    var viewContext = new ViewContext(ControllerContext, viewResult.View, dDict, new TempDataDictionary(), writer);
+                    viewResult.View.Render(viewContext, writer);
+                    viewAsString = sb.ToString();
+                }
+            }
+            return viewAsString;
         }
 
         //[NonAction]
@@ -66,7 +91,7 @@ namespace Quizzit.Controllers
             {
                 //var question = db.Questions.Find(qvm.QuestionID);
                 var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-                if(question != null)
+                if (question != null)
                 {
                     if (question.QuestionType == (int)QuestionType.Checkbox ||
                     question.QuestionType == (int)QuestionType.Radio ||
@@ -104,10 +129,13 @@ namespace Quizzit.Controllers
             //
             return View();
         }
-        
+
+
         [HttpPost]
-        public ActionResult AjaxSave(QuestionFormVM qvm)
+        public JsonResult AjaxSave(QuestionFormVM qvm)
         {
+            string viewAsString = "";
+            //
             if (qvm.Answer == null)
             {
                 //var question = db.Questions.Find(qvm.QuestionID);
@@ -125,11 +153,12 @@ namespace Quizzit.Controllers
                         ViewBag.ErrorMessage = "Answer field can not be blank";
                     }
                     //
-                    return PartialView("_QuestionControls", question);
-                    //ViewBag.Question = question;
-                    //return View();
+                    viewAsString = RenderViewAsString("_QuestionControls", question);
+                    return Json(new { status = true, view = viewAsString });
+                    //return PartialView("_QuestionControls", question);
                 }
-                return HttpNotFound();
+                return Json(new { status = false });
+                //return HttpNotFound();
             }
             //
             if (qvm.NextQuestion == int.MinValue)
@@ -143,24 +172,105 @@ namespace Quizzit.Controllers
                     // ************************************
                     //return RedirectToAction("Summary");
                     //
-                    return PartialView("_ShowSummaryLink");
+                    return Json(new { status = true, url = Url.Action("Summary", "Home") });
+                    //return PartialView("_ShowSummaryLink");
                 }
-                return HttpNotFound();
+                //return Json(new { status = false });
+                //return HttpNotFound();
             }
             //
-            //
-            Question nextQues = SearchQuestionById(qvm.NextQuestion);
-            if(nextQues.NextQuestionID == null)
+            Question objQuestion = SearchQuestionById(qvm.NextQuestion);
+            Question prevQues = db.Questions.Where(x => x.NextQuestionID == objQuestion.ID).FirstOrDefault();
+            if (prevQues == null)
             {
-                nextQues.NextQuestionID = int.MinValue;
-                return PartialView("_QuestionControls", nextQues);
+                objQuestion.PrevQuestionID = int.MinValue;
             }
-            return PartialView("_QuestionControls", nextQues);
-            //ViewBag.Question = nextQues;
-            ////
-            //return View();
+            if (objQuestion.NextQuestionID == null)
+            {
+                objQuestion.NextQuestionID = int.MinValue;
+                viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
+                return Json(new { status = true, view = viewAsString });
+                //return PartialView("_QuestionControls", objQuestion);
+            }
+            viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
+            return Json(new { status = true, view = viewAsString });
+            //return PartialView("_QuestionControls", objQuestion);
         }
 
+        #region Original
+
+        //[HttpPost]
+        //public ActionResult AjaxSave(QuestionFormVM qvm)
+        //{
+        //    string viewAsString = "";
+        //    //
+        //    if (qvm.Answer == null)
+        //    {
+        //        //var question = db.Questions.Find(qvm.QuestionID);
+        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+        //        if (question != null)
+        //        {
+        //            if (question.QuestionType == (int)QuestionType.Checkbox ||
+        //            question.QuestionType == (int)QuestionType.Radio ||
+        //            question.QuestionType == (int)QuestionType.Dropdown)
+        //            {
+        //                ViewBag.ErrorMessage = "You must have atleast one option selected";
+        //            }
+        //            else
+        //            {
+        //                ViewBag.ErrorMessage = "Answer field can not be blank";
+        //            }
+        //            //
+        //            //viewAsString = RenderViewAsString("_QuestionControls", question);
+        //            //return Json(new { status = true, view = viewAsString });
+        //            return PartialView("_QuestionControls", question);
+        //            //ViewBag.Question = question;
+        //            //return View();
+        //        }
+        //        return HttpNotFound();
+        //        //return Json(new { status = false });
+        //    }
+        //    //
+        //    if (qvm.NextQuestion == int.MinValue)
+        //    {
+        //        //var question = db.Questions.Find(qvm.QuestionID);
+        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+        //        if (question != null)
+        //        {
+        //            // ************************************
+        //            // *********   Save Here    ***********
+        //            // ************************************
+        //            //return RedirectToAction("Summary");
+        //            //
+        //            //return Json(new { status = true, url = Url.Action("Summary", "Home") });
+        //            return PartialView("_ShowSummaryLink");
+        //        }
+        //        return HttpNotFound();
+        //        //return Json(new { status = false });
+        //    }
+        //    //
+        //    Question objQuestion = SearchQuestionById(qvm.NextQuestion);
+        //    Question prevQues = db.Questions.Where(x => x.NextQuestionID == objQuestion.ID).FirstOrDefault();
+        //    if (prevQues == null)
+        //    {
+        //        objQuestion.PrevQuestionID = int.MinValue;
+        //    }
+        //    if (objQuestion.NextQuestionID == null)
+        //    {
+        //        objQuestion.NextQuestionID = int.MinValue;
+        //        //viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
+        //        //return Json(new { status = true, view = viewAsString });
+        //        return PartialView("_QuestionControls", objQuestion);
+        //    }
+        //    //viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
+        //    //return Json(new { status = true, view = viewAsString });
+        //    return PartialView("_QuestionControls", objQuestion);
+        //    //ViewBag.Question = nextQues;
+        //    ////
+        //    //return View();
+        //}
+
+        #endregion
 
         public ActionResult Summary()
         {
@@ -194,7 +304,7 @@ namespace Quizzit.Controllers
 
         //protected override void Dispose(bool disposing)
         //{
-            //db.Dispose();
+        //db.Dispose();
         //}
 
     }
