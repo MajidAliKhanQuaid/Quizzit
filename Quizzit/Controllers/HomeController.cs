@@ -176,10 +176,17 @@ namespace Quizzit.Controllers
                     // ************************************
                     // *********   Save Here    ***********
                     // ************************************
-                    Dictionary<int, string> ss = (Session["AnsweredQuestions"] as Dictionary<int, string>);
-                    ss.Add(qvm.QuestionID, qvm.Answer);
+                    Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+                    if (dictQA.Keys.Contains(qvm.QuestionID))
+                    {
+                        dictQA[qvm.QuestionID] = qvm.Answer;
+                    }
+                    else
+                    {
+                        dictQA.Add(qvm.QuestionID, qvm.Answer);
+                    }
                     bool isDirty = false;
-                    foreach (var item in ss)
+                    foreach (var item in dictQA)
                     {
                         QuestionAndAnswer qs = new QuestionAndAnswer();
                         //
@@ -201,8 +208,15 @@ namespace Quizzit.Controllers
                 //return HttpNotFound();
             }
             // Saving Answer in the Session variable
-            Dictionary<int, string> f = (Session["AnsweredQuestions"] as Dictionary<int, string>);
-            f.Add(qvm.QuestionID, qvm.Answer);
+            Dictionary<int, string> dict = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+            if (dict.Keys.Contains(qvm.QuestionID))
+            {
+                dict[qvm.QuestionID] = qvm.Answer;
+            }
+            else
+            {
+                dict.Add(qvm.QuestionID, qvm.Answer);
+            }
             //
             Question objQuestion = SearchQuestionById(qvm.NextQuestion);
             Question prevQues = db.Questions.Where(x => x.NextQuestionID == objQuestion.ID).FirstOrDefault();
