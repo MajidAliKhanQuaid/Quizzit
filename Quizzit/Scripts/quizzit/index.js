@@ -4,14 +4,13 @@
     return div;
 }
 
-
 function GetPrevQuestion() {
     var prevQuestId = document.getElementById("PrevQuestion").value;
     var questnId = document.getElementById("QuestionID").value;
     var nextQuestId = document.getElementById("NextQuestion").value;
     var answer = document.getElementById("Answer").value;
     $.ajax({
-        url: "/Home/AjaxSave2",
+        url: "/Home/LoadPrevious",
         method: "POST",
         data: { PrevQuestion: prevQuestId, QuestionID: questnId, NextQuestion: nextQuestId, Answer: answer },
         dataType: "html",
@@ -40,13 +39,14 @@ function GetPrevQuestion() {
 
 
 function GetNextQuestion() {
+    var prevQuestId = document.getElementById("PrevQuestion").value;
     var questnId = document.getElementById("QuestionID").value;
     var nextQuestId = document.getElementById("NextQuestion").value;
     var answer = document.getElementById("Answer").value;
     $.ajax({
-        url: "/Home/AjaxSave",
+        url: "/Home/SaveLoadNext",
         method: "POST",
-        data: { QuestionID: questnId, NextQuestion: nextQuestId, Answer: answer },
+        data: { PrevQuestion: prevQuestId, QuestionID: questnId, NextQuestion: nextQuestId, Answer: answer },
         dataType: "html",
         success: function (response) {
             response = JSON.parse(response);

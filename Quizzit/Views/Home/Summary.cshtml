@@ -1,8 +1,9 @@
-﻿
-@for (var i = 0; i < 10; i++)
+﻿@model IEnumerable<Quizzit.ViewModel.SummaryVM>
+
+@for (var i = 0; i < Model.Count(); i++)
 {
     <div class="panel panel-default">
-        <div class="panel-heading"><strong>Question</strong> | Your question was this ?</div>
-        <div class="panel-body"><strong>Answer</strong> | You spitted this as answer</div>
+        <div class="panel-heading"><strong>Question</strong> | @Model.ElementAt(i).Question</div>
+        <div class="panel-body"><strong>Answer</strong> | @Model.ElementAt(i).Answer</div>
     </div>
 }

@@ -1,5 +1,6 @@
 ﻿using Quizzit.Models;
 using Quizzit.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,13 +29,14 @@ namespace Quizzit.Controllers
             return db.Questions.Find(qid);
         }
 
-
         public string RenderViewAsString(string viewName, object model)
         {
             string viewAsString = "";
 
             if (string.IsNullOrEmpty(viewName))
+            {
                 viewName = ControllerContext.RouteData.GetRequiredString("action");
+            }
 
             var viewResult = ViewEngines.Engines.FindPartialView(ControllerContext, viewName);
             PartialViewResult pvr = PartialView(viewName, model);
@@ -42,7 +44,7 @@ namespace Quizzit.Controllers
             StringBuilder sb = new StringBuilder();
             using (StringWriter writer = new StringWriter(sb))
             {
-                using(HtmlTextWriter markupWriter = new HtmlTextWriter(writer))
+                using (HtmlTextWriter markupWriter = new HtmlTextWriter(writer))
                 {
                     var viewContext = new ViewContext(ControllerContext, viewResult.View, dDict, new TempDataDictionary(), writer);
                     viewResult.View.Render(viewContext, writer);
@@ -73,6 +75,17 @@ namespace Quizzit.Controllers
 
         public ActionResult Index()
         {
+            // Here Integer Holds Value for Question ID | String accounts for the Answer
+            Session["AnsweredQuestions"] = new Dictionary<int, string>();
+            //Session["UserID"] = DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year +
+            //    DateTime.Now.Hour + DateTime.Now.Minute +  DateTime.Now.Second;
+            char[] numbers = Guid.NewGuid().ToString().Where(x => Char.IsDigit(x)).ToArray();
+            string UserID = string.Join("", numbers);
+            if(UserID.Length > 9)
+            {
+                UserID = UserID.Substring(0, 9);
+            }
+            Session["UserID"] = UserID;
             //Question question = db.Questions.FirstOrDefault();
             Question question = (Session["Questions"] as List<Question>).FirstOrDefault();
             if (question == null)
@@ -80,7 +93,7 @@ namespace Quizzit.Controllers
                 return Content("There're no questions in the database");
             }
             Question prevQues = db.Questions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
-            if(prevQues == null)
+            if (prevQues == null)
             {
                 question.PrevQuestionID = int.MinValue;
             }
@@ -92,55 +105,8 @@ namespace Quizzit.Controllers
             return View();
         }
 
-        //[ActionName("Index")]
-        //[HttpPost]
-        //public ActionResult SaveAnswer(QuestionFormVM qvm)
-        //{
-        //    if (qvm.Answer == null)
-        //    {
-        //        //var question = db.Questions.Find(qvm.QuestionID);
-        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-        //        if (question != null)
-        //        {
-        //            if (question.QuestionType == (int)QuestionType.Checkbox ||
-        //            question.QuestionType == (int)QuestionType.Radio ||
-        //            question.QuestionType == (int)QuestionType.Dropdown)
-        //            {
-        //                ViewBag.ErrorMessage = "You must have atleast one option selected";
-        //            }
-        //            else
-        //            {
-        //                ViewBag.ErrorMessage = "Answer field can not be blank";
-        //            }
-        //            //
-        //            ViewBag.Question = question;
-        //            return View();
-        //        }
-        //        return Content("Question could be recognized by the system");
-        //    }
-        //    //
-        //    if (qvm.NextQuestion == int.MinValue)
-        //    {
-        //        //var question = db.Questions.Find(qvm.QuestionID);
-        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-        //        if (question != null)
-        //        {
-        //            // ************************************
-        //            // *********   Save Here    ***********
-        //            // ************************************
-        //            return RedirectToAction("Summary");
-        //        }
-        //        return Content("Question could be recognized by the system");
-        //    }
-        //    //
-        //    Question nextQues = SearchQuestionById(qvm.NextQuestion);
-        //    ViewBag.Question = nextQues;
-        //    //
-        //    return View();
-        //}
-
         [HttpPost]
-        public JsonResult AjaxSave2(QuestionFormVM qvm)
+        public JsonResult LoadPrevious(QuestionFormVM qvm)
         {
             string viewAsString = "";
             // Get Previous
@@ -151,7 +117,8 @@ namespace Quizzit.Controllers
             if (question != null)
             {
                 Question prevQues = db.Questions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
-                if(prevQues == null){
+                if (prevQues == null)
+                {
                     question.PrevQuestionID = int.MinValue;
                 }
                 else
@@ -171,7 +138,7 @@ namespace Quizzit.Controllers
 
 
         [HttpPost]
-        public JsonResult AjaxSave(QuestionFormVM qvm)
+        public JsonResult SaveLoadNext(QuestionFormVM qvm)
         {
             string viewAsString = "";
             //
@@ -209,7 +176,23 @@ namespace Quizzit.Controllers
                     // ************************************
                     // *********   Save Here    ***********
                     // ************************************
-                    //return RedirectToAction("Summary");
+                    Dictionary<int, string> ss = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+                    ss.Add(qvm.QuestionID, qvm.Answer);
+                    bool isDirty = false;
+                    foreach (var item in ss)
+                    {
+                        QuestionAndAnswer qs = new QuestionAndAnswer();
+                        //
+                        qs.UserID = Convert.ToInt32(Session["UserID"]);
+                        //
+                        qs.QuestionsAndAnswers = $"{item.Key.ToString().PadRight(5, ' ')}{item.Value}";
+                        db.QuestionAndAnswers.Add(qs);
+                        isDirty = true;
+                    }
+                    if (isDirty)
+                    {
+                        db.SaveChanges();
+                    }
                     //
                     return Json(new { status = true, url = Url.Action("Summary", "Home") });
                     //return PartialView("_ShowSummaryLink");
@@ -217,6 +200,9 @@ namespace Quizzit.Controllers
                 //return Json(new { status = false });
                 //return HttpNotFound();
             }
+            // Saving Answer in the Session variable
+            Dictionary<int, string> f = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+            f.Add(qvm.QuestionID, qvm.Answer);
             //
             Question objQuestion = SearchQuestionById(qvm.NextQuestion);
             Question prevQues = db.Questions.Where(x => x.NextQuestionID == objQuestion.ID).FirstOrDefault();
@@ -241,115 +227,24 @@ namespace Quizzit.Controllers
             //return PartialView("_QuestionControls", objQuestion);
         }
 
-        #region Original
-
-        //[HttpPost]
-        //public ActionResult AjaxSave(QuestionFormVM qvm)
-        //{
-        //    string viewAsString = "";
-        //    //
-        //    if (qvm.Answer == null)
-        //    {
-        //        //var question = db.Questions.Find(qvm.QuestionID);
-        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-        //        if (question != null)
-        //        {
-        //            if (question.QuestionType == (int)QuestionType.Checkbox ||
-        //            question.QuestionType == (int)QuestionType.Radio ||
-        //            question.QuestionType == (int)QuestionType.Dropdown)
-        //            {
-        //                ViewBag.ErrorMessage = "You must have atleast one option selected";
-        //            }
-        //            else
-        //            {
-        //                ViewBag.ErrorMessage = "Answer field can not be blank";
-        //            }
-        //            //
-        //            //viewAsString = RenderViewAsString("_QuestionControls", question);
-        //            //return Json(new { status = true, view = viewAsString });
-        //            return PartialView("_QuestionControls", question);
-        //            //ViewBag.Question = question;
-        //            //return View();
-        //        }
-        //        return HttpNotFound();
-        //        //return Json(new { status = false });
-        //    }
-        //    //
-        //    if (qvm.NextQuestion == int.MinValue)
-        //    {
-        //        //var question = db.Questions.Find(qvm.QuestionID);
-        //        var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-        //        if (question != null)
-        //        {
-        //            // ************************************
-        //            // *********   Save Here    ***********
-        //            // ************************************
-        //            //return RedirectToAction("Summary");
-        //            //
-        //            //return Json(new { status = true, url = Url.Action("Summary", "Home") });
-        //            return PartialView("_ShowSummaryLink");
-        //        }
-        //        return HttpNotFound();
-        //        //return Json(new { status = false });
-        //    }
-        //    //
-        //    Question objQuestion = SearchQuestionById(qvm.NextQuestion);
-        //    Question prevQues = db.Questions.Where(x => x.NextQuestionID == objQuestion.ID).FirstOrDefault();
-        //    if (prevQues == null)
-        //    {
-        //        objQuestion.PrevQuestionID = int.MinValue;
-        //    }
-        //    if (objQuestion.NextQuestionID == null)
-        //    {
-        //        objQuestion.NextQuestionID = int.MinValue;
-        //        //viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
-        //        //return Json(new { status = true, view = viewAsString });
-        //        return PartialView("_QuestionControls", objQuestion);
-        //    }
-        //    //viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
-        //    //return Json(new { status = true, view = viewAsString });
-        //    return PartialView("_QuestionControls", objQuestion);
-        //    //ViewBag.Question = nextQues;
-        //    ////
-        //    //return View();
-        //}
-
-        #endregion
-
         public ActionResult Summary()
         {
-            return View();
+            List<SummaryVM> summaries = new List<SummaryVM>();
+            int UserID = Convert.ToInt32(Session["UserID"]);
+            var qas = db.QuestionAndAnswers.Where(x => x.UserID == UserID).ToList();
+            foreach (var qa in qas)
+            {
+                string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
+                var question = db.Questions.Find(int.Parse(strQuestId));
+                //
+                SummaryVM summary = new SummaryVM();
+                summary.Question = question.QuestionText;
+                summary.Answer = qa.QuestionsAndAnswers.Substring(5);
+                summaries.Add(summary);
+            }
+            return View(summaries);
             //return Content("<h1>Summary Page Goes Here</h1>");
         }
-
-        //public JsonResult NextQuestion(int questionId)
-        //{
-        //    var question = db.Questions.Find(questionId);
-        //    if (question != null)
-        //    {
-        //        var qOptions = db.QuestionAnswers.
-        //            Where(x => x.QuestionID == question.ID)
-        //            .Select(x => new QuestionOptionVM()
-        //            {
-        //                Option = x.AnswerText,
-        //                IsAnswer = false
-        //            }).ToList();
-        //        //
-        //        QuestionVM qVm = new QuestionVM();
-        //        qVm.QuestionText = question.QuestionText;
-        //        qVm.QuestionType = question.QuestionType;
-        //        qVm.Options = qOptions;
-        //        qVm.NextQuestion = question.NextQuestionID;
-        //        //
-        //        return Json(new { status = true, question = qVm });
-        //    }
-        //    return Json(new { status = false });
-        //}
-
-        //protected override void Dispose(bool disposing)
-        //{
-        //db.Dispose();
-        //}
 
     }
 }
