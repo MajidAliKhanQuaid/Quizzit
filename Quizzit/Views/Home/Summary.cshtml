@@ -3,7 +3,27 @@
 @for (var i = 0; i < Model.Count(); i++)
 {
     <div class="panel panel-default">
-        <div class="panel-heading"><strong>Question</strong> | @Model.ElementAt(i).Question</div>
-        <div class="panel-body"><strong>Answer</strong> | @Model.ElementAt(i).Answer</div>
+        <div class="panel-heading"><span class="qaLabel">Question # @(i + 1)</span> @Model.ElementAt(i).Question</div>
+        <div class="panel-body"><span class="qaLabel">Answer</span> @Model.ElementAt(i).Answer</div>
     </div>
 }
+
+<style>
+    .qaLabel {
+        display: inline-block;
+        width: 130px;
+        padding: 5px;
+        border-radius: 1%;
+        margin-right: 5px;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .panel > .panel-heading {
+        background-image: none;
+        background-color: rgba(255, 216, 0.8) !important;
+        color: white;
+    }
+</style>
+
+<script src="~/Scripts/quizzit/_disablebrowserback.js"></script>

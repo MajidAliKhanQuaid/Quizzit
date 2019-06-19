@@ -16,17 +16,17 @@
 <div class="jumbotron question-region fadeIn animated">
 
     <div class="row">
-        <div class="col-md-11">
+        <div class="col-md-12">
             <p class="lead">
                 @Model.QuestionText
             </p>
         </div>
-        <div class="col-md-1 text-right">
+        @*<div class="col-md-1 text-right">
             @if (nextQueId > 0)
             {
                 @Html.Raw(nextQueId);
             }
-        </div>
+        </div>*@
     </div>
 
     @if (ViewBag.ErrorMessage != null)
@@ -97,7 +97,7 @@
                 }
             }
         </div>
-        <div class="col-md-offset-8 col-md-2">
+        <div class="col-md-offset-8 col-md-2 text-right">
             @{
                 var caption = "Next";
                 if (Model.NextQuestionID == int.MinValue)

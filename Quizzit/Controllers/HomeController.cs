@@ -250,6 +250,10 @@ namespace Quizzit.Controllers
 
         public ActionResult Summary()
         {
+            if(Session["UserID"] == null)
+            {
+                return RedirectToAction("Index");
+            }
             List<SummaryVM> summaries = new List<SummaryVM>();
             int UserID = Convert.ToInt32(Session["UserID"]);
             var qas = db.QuestionAndAnswers.Where(x => x.UserID == UserID).ToList();
