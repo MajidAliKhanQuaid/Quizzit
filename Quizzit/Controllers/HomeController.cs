@@ -12,6 +12,7 @@ namespace Quizzit.Controllers
 {
     public partial class HomeController : Controller
     {
+        static int USERID = 1;
 
         [NonAction]
         private void LoadQuestionsIfNotExist()
@@ -29,7 +30,7 @@ namespace Quizzit.Controllers
             return db.Questions.Find(qid);
         }
 
-        public string RenderViewAsString(string viewName, object model)
+        private string RenderViewAsString(string viewName, object model)
         {
             string viewAsString = "";
 
@@ -54,6 +55,42 @@ namespace Quizzit.Controllers
             return viewAsString;
         }
 
+        private int GetUserID()
+        {
+            char[] numbers = Guid.NewGuid().ToString().Where(x => Char.IsDigit(x)).ToArray();
+            string UserID = string.Join("", numbers);
+            if (UserID.Length > 9)
+            {
+                UserID = UserID.Substring(0, 9);
+            }
+            return Convert.ToInt32(UserID);
+        }
+
+        [NonAction]
+        private SummaryVM GetSummaryObj(Question question, List<QuestionAndAnswer> qas)
+        {
+            SummaryVM summary = new SummaryVM();
+            summary.Question = question.QuestionText;
+            foreach (var item in qas)
+            {
+                if (string.IsNullOrWhiteSpace(item.QuestionsAndAnswers) == false)
+                {
+                    string srQuesID = item.QuestionsAndAnswers.Substring(0, 4);
+                    int QuesID = int.Parse(srQuesID);
+                    if (QuesID == question.ID)
+                    {
+                        summary.Answer = item.QuestionsAndAnswers.Substring(5);
+                        break;
+                    }
+                }
+            }
+            if(summary.Answer == null)
+            {
+                summary.Answer = "N/A";
+            }
+            return summary;
+        }
+
         //[NonAction]
         //private Tuple<bool, List<ValidationResult>> Validate<T>(T obj)
         //{
@@ -70,7 +107,24 @@ namespace Quizzit.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            //LoadQuestionsIfNotExist();
+            LoadQuestionsIfNotExist();
+        }
+
+        public ActionResult Startup()
+        {
+            List<SummaryVM> summaries = new List<SummaryVM>();
+            var qas = db.QuestionAndAnswers.Where(x => x.UserID == USERID).ToList();
+            foreach (var qa in qas)
+            {
+                string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
+                var question = db.Questions.Find(int.Parse(strQuestId));
+                //
+                SummaryVM summary = new SummaryVM();
+                summary.Question = question.QuestionText;
+                summary.Answer = qa.QuestionsAndAnswers.Substring(5);
+                summaries.Add(summary);
+            }
+            return View(summaries);
         }
 
         public ActionResult Index()
@@ -79,15 +133,11 @@ namespace Quizzit.Controllers
             Session["Questions"] = questions;
             // Here Integer Holds Value for Question ID | String accounts for the Answer
             Session["AnsweredQuestions"] = new Dictionary<int, string>();
-            //Session["UserID"] = DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year +
-            //    DateTime.Now.Hour + DateTime.Now.Minute +  DateTime.Now.Second;
-            char[] numbers = Guid.NewGuid().ToString().Where(x => Char.IsDigit(x)).ToArray();
-            string UserID = string.Join("", numbers);
-            if(UserID.Length > 9)
-            {
-                UserID = UserID.Substring(0, 9);
-            }
-            Session["UserID"] = UserID;
+
+            /*
+             USERID = GetUserID(); 
+             */
+
             //Question question = db.Questions.FirstOrDefault();
             Question question = (Session["Questions"] as List<Question>).FirstOrDefault();
             if (question == null)
@@ -138,36 +188,35 @@ namespace Quizzit.Controllers
             //return PartialView("_QuestionControls", objQuestion);
         }
 
-
         [HttpPost]
         public JsonResult SaveLoadNext(QuestionFormVM qvm)
         {
             string viewAsString = "";
             //
-            if (qvm.Answer == null)
-            {
-                //var question = db.Questions.Find(qvm.QuestionID);
-                var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-                if (question != null)
-                {
-                    if (question.QuestionType == (int)QuestionType.Checkbox ||
-                    question.QuestionType == (int)QuestionType.Radio ||
-                    question.QuestionType == (int)QuestionType.Dropdown)
-                    {
-                        ViewBag.ErrorMessage = "You must have atleast one option selected";
-                    }
-                    else
-                    {
-                        ViewBag.ErrorMessage = "Answer field can not be blank";
-                    }
-                    //
-                    viewAsString = RenderViewAsString("_QuestionControls", question);
-                    return Json(new { status = true, view = viewAsString });
-                    //return PartialView("_QuestionControls", question);
-                }
-                return Json(new { status = false });
-                //return HttpNotFound();
-            }
+            //if (qvm.Answer == null)
+            //{
+            //    //var question = db.Questions.Find(qvm.QuestionID);
+            //    var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+            //    if (question != null)
+            //    {
+            //        if (question.QuestionType == (int)QuestionType.Checkbox ||
+            //        question.QuestionType == (int)QuestionType.Radio ||
+            //        question.QuestionType == (int)QuestionType.Dropdown)
+            //        {
+            //            question.ErrorMessage = "You must have atleast one option selected";
+            //        }
+            //        else
+            //        {
+            //            question.ErrorMessage = "Answer field can not be blank";
+            //        }
+            //        //
+            //        viewAsString = RenderViewAsString("_QuestionControls", question);
+            //        return Json(new { status = true, view = viewAsString });
+            //        //return PartialView("_QuestionControls", question);
+            //    }
+            //    return Json(new { status = false });
+            //    //return HttpNotFound();
+            //}
             //
             if (qvm.NextQuestion == int.MinValue)
             {
@@ -179,15 +228,18 @@ namespace Quizzit.Controllers
                     // *********   Save Here    ***********
                     // ************************************
                     Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
-                    if (dictQA.Keys.Contains(qvm.QuestionID))
+                    if (qvm.Answer != null)
                     {
-                        dictQA[qvm.QuestionID] = qvm.Answer;
+                        if (dictQA.Keys.Contains(qvm.QuestionID))
+                        {
+                            dictQA[qvm.QuestionID] = qvm.Answer;
+                        }
+                        else
+                        {
+                            dictQA.Add(qvm.QuestionID, qvm.Answer);
+                        }
                     }
-                    else
-                    {
-                        dictQA.Add(qvm.QuestionID, qvm.Answer);
-                    }
-                    int UserID = Convert.ToInt32(Session["UserID"]);
+                    int UserID = USERID; // Convert.ToInt32();
                     bool isDirty = false;
                     //
                     db.QuestionAndAnswers.RemoveRange(db.QuestionAndAnswers.Where(x => x.UserID == UserID));
@@ -215,14 +267,17 @@ namespace Quizzit.Controllers
                 //return HttpNotFound();
             }
             // Saving Answer in the Session variable
-            Dictionary<int, string> dict = (Session["AnsweredQuestions"] as Dictionary<int, string>);
-            if (dict.Keys.Contains(qvm.QuestionID))
+            if (qvm.Answer != null)
             {
-                dict[qvm.QuestionID] = qvm.Answer;
-            }
-            else
-            {
-                dict.Add(qvm.QuestionID, qvm.Answer);
+                Dictionary<int, string> dict = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+                if (dict.Keys.Contains(qvm.QuestionID))
+                {
+                    dict[qvm.QuestionID] = qvm.Answer;
+                }
+                else
+                {
+                    dict.Add(qvm.QuestionID, qvm.Answer);
+                }
             }
             //
             Question objQuestion = SearchQuestionById(qvm.NextQuestion);
@@ -250,24 +305,34 @@ namespace Quizzit.Controllers
 
         public ActionResult Summary()
         {
-            if(Session["UserID"] == null)
-            {
-                return RedirectToAction("Index");
-            }
             List<SummaryVM> summaries = new List<SummaryVM>();
-            int UserID = Convert.ToInt32(Session["UserID"]);
-            var qas = db.QuestionAndAnswers.Where(x => x.UserID == UserID).ToList();
-            foreach (var qa in qas)
+            //
+            var qu = db.Questions.ToList();
+            var qas = db.QuestionAndAnswers.Where(x => x.UserID == USERID).ToList();
+            foreach (var q in qu)
             {
-                string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
-                var question = db.Questions.Find(int.Parse(strQuestId));
-                //
-                SummaryVM summary = new SummaryVM();
-                summary.Question = question.QuestionText;
-                summary.Answer = qa.QuestionsAndAnswers.Substring(5);
+                SummaryVM summary = GetSummaryObj(q, qas);
                 summaries.Add(summary);
             }
+
             return View(summaries);
+            // MAJID ADD CODE HERE
+
+            //foreach (var qa in qas)
+            //{
+            //    //
+            //    var qu = db.Questions.ToList();
+
+            //    //
+            //    string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
+            //    var question = db.Questions.Find(int.Parse(strQuestId));
+            //    //
+            //    SummaryVM summary = new SummaryVM();
+            //    summary.Question = question.QuestionText;
+            //    summary.Answer = qa.QuestionsAndAnswers.Substring(5);
+            //    summaries.Add(summary);
+            //}
+            //return View(summaries);
             //return Content("<h1>Summary Page Goes Here</h1>");
         }
 

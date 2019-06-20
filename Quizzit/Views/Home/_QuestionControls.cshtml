@@ -29,10 +29,10 @@
         </div>*@
     </div>
 
-    @if (ViewBag.ErrorMessage != null)
+    @if (Model.ErrorMessage != null)
     {
         <div class="alert alert-danger">
-            @ViewBag.ErrorMessage
+            @Model.ErrorMessage
         </div>
     }
 
@@ -91,9 +91,13 @@
     <div class="row submit-button-row">
         <div class="col-md-2">
             @{
-                if (Model.PrevQuestionID > int.MinValue)
+                if (Model.PrevQuestionID > 0)
                 {
-                    <button type="submit" id="btnBack" class="btn btn-success">Previous</button>
+                    <button type="submit" id="btnBack" class="btn btn-primary">Previous</button>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-primary" disabled>Previous</button>
                 }
             }
         </div>
@@ -105,7 +109,7 @@
                     caption = "Submit";
                 }
             }
-            <button type="submit" id="btnQuestion" class="btn btn-success">@caption</button>
+            <button type="submit" id="btnQuestion" class="btn btn-primary">@caption</button>
         </div>
     </div>
 
