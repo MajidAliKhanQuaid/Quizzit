@@ -1,39 +1,17 @@
-﻿@model IEnumerable<Quizzit.ViewModel.SummaryVM>
+﻿@using Quizzit.ViewModel;
+@using Quizzit.Models;
 
-@for (var i = 0; i < Model.Count(); i++)
-{
-    <div class="panel panel-default">
-        <div class="panel-heading"><span class="qaLabel">Question # @(i + 1)</span> @Model.ElementAt(i).Question</div>
-        <div class="panel-body"><span class="qaLabel">Answer</span> @Model.ElementAt(i).Answer</div>
-    </div>
+@{
+    ViewBag.Title = "Quizzit";
+    var question = ViewBag.Question as Question;
 }
 
-<script>
-    var btn = "<button class=\"btn btn-primary btnStartQuizz\">Start Quizz</button>";
-    $(".logoRowLastCol").html(btn);
-    $(".btnStartQuizz").click(function () {
-        window.location.href = "/";
-    });
-</script>
+<link href="~/Content/custom-control-styles.css" rel="stylesheet" />
+<link href="~/Content/animate.min.css" rel="stylesheet" />
+<link href="~/Content/quizzit/index.css" rel="stylesheet" />
 
+<div class="_placeholder">
+    @Html.Partial("_QuestionControls", question)
+</div>
 
-<style>
-    .qaLabel {
-        display: inline-block;
-        width: 130px;
-        padding: 5px;
-        border-radius: 1%;
-        margin-right: 5px;
-        font-size: 15px;
-        font-weight: bold;
-    }
-
-    .panel > .panel-heading {
-        background-image: none;
-        background-color: white !important;
-        /*background-color: rgba(255, 216, 0.8) !important;*/
-        color: black;
-    }
-</style>
-
-<script src="~/Scripts/quizzit/_disablebrowserback.js"></script>
+@Scripts.Render("~/Scripts/quizzit/index.js")

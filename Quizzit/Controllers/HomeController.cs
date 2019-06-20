@@ -112,23 +112,6 @@ namespace Quizzit.Controllers
 
         public ActionResult Startup()
         {
-            List<SummaryVM> summaries = new List<SummaryVM>();
-            var qas = db.QuestionAndAnswers.Where(x => x.UserID == USERID).ToList();
-            foreach (var qa in qas)
-            {
-                string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
-                var question = db.Questions.Find(int.Parse(strQuestId));
-                //
-                SummaryVM summary = new SummaryVM();
-                summary.Question = question.QuestionText;
-                summary.Answer = qa.QuestionsAndAnswers.Substring(5);
-                summaries.Add(summary);
-            }
-            return View(summaries);
-        }
-
-        public ActionResult Index()
-        {
             var questions = db.Questions.ToList();
             Session["Questions"] = questions;
             // Here Integer Holds Value for Question ID | String accounts for the Answer
@@ -155,6 +138,23 @@ namespace Quizzit.Controllers
             }
             ViewBag.Question = question;
             return View();
+        }
+
+        public ActionResult Index()
+        {
+            List<SummaryVM> summaries = new List<SummaryVM>();
+            var qas = db.QuestionAndAnswers.Where(x => x.UserID == USERID).ToList();
+            foreach (var qa in qas)
+            {
+                string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
+                var question = db.Questions.Find(int.Parse(strQuestId));
+                //
+                SummaryVM summary = new SummaryVM();
+                summary.Question = question.QuestionText;
+                summary.Answer = qa.QuestionsAndAnswers.Substring(5);
+                summaries.Add(summary);
+            }
+            return View(summaries);
         }
 
         [HttpPost]
