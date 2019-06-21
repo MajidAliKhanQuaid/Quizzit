@@ -46,7 +46,7 @@
         else if (Model.QuestionType == (int)QuestionType.MultilineText)
         {
             <div class="col-md-12">
-                <textarea class="form-control Answer" id="Answer" name="Answer">@Model.Answered</textarea>
+                <textarea class="form-control Answer" id="Answer" rows="10" name="Answer">@Model.Answered</textarea>
             </div>
         }
         else if (Model.QuestionType == (int)QuestionType.Checkbox)
