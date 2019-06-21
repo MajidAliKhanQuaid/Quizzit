@@ -22,11 +22,11 @@
             </p>
         </div>
         @*<div class="col-md-1 text-right">
-            @if (nextQueId > 0)
-            {
-                @Html.Raw(nextQueId);
-            }
-        </div>*@
+                @if (nextQueId > 0)
+                {
+                    @Html.Raw(nextQueId);
+                }
+            </div>*@
     </div>
 
     @if (Model.ErrorMessage != null)
@@ -40,37 +40,58 @@
         @if (Model.QuestionType == (int)QuestionType.TextBox)
         {
             <div class="col-md-12">
-                <input class="form-control Answer" id="Answer" name="Answer" type="text" />
+                <input class="form-control Answer" id="Answer" name="Answer" value="@Model.Answered" type="text" />
             </div>
         }
         else if (Model.QuestionType == (int)QuestionType.MultilineText)
         {
             <div class="col-md-12">
-                <textarea class="form-control Answer" id="Answer" name="Answer"></textarea>
+                <textarea class="form-control Answer" id="Answer" name="Answer">@Model.Answered</textarea>
             </div>
         }
         else if (Model.QuestionType == (int)QuestionType.Checkbox)
         {
             //foreach (var option in question.Options)
-            <input type="hidden" id="Answer" name="Answer" value="" />
+            <input type="hidden" id="Answer" name="Answer" value="@Model.Answered" />
             for (var i = 0; i < Model.QuestionAnswers.Count; i++)
             {
                 var option = Model.QuestionAnswers.ElementAt(i);
                 <div class="col-md-12">
-                    <input type="checkbox" id="chk-@i" class="form-radio-check form-checkbox" value="@option.AnswerText" /> <label for="chk-@i">@option.AnswerText</label>
+                    @{
+                        var flag = " ";
+                        if (Model.Answered != null)
+                        {
+                            var answers = Model.Answered.Split(',');
+                            if (answers.Contains(option.AnswerText) == true)
+                            {
+                                flag = " checked";
+                            }
+                        }
+                    }
+                    <input type="checkbox" id="chk-@i" class="form-radio-check form-checkbox" value="@option.AnswerText" @flag /> <label for="chk-@i">@option.AnswerText</label>
                 </div>
             }
         }
         else if (Model.QuestionType == (int)QuestionType.Radio)
         {
             //foreach (var option in question.Options)
-            <input type="hidden" id="Answer" name="Answer" value="" />
+            <input type="hidden" id="Answer" name="Answer" value="@Model.Answered" />
             for (var i = 0; i < Model.QuestionAnswers.Count; i++)
             {
                 var option = Model.QuestionAnswers.ElementAt(i);
 
                 <div class="col-md-12">
-                    <input type="radio" id="rad-@i" class="Answer form-radio-check form-radio" name="Answer" value="@option.AnswerText" /> <label for="rad-@i">@option.AnswerText</label>
+                    @{
+                        var flag = " ";
+                        if (Model.Answered != null)
+                        {
+                            if (Model.Answered == option.AnswerText)
+                            {
+                                flag = " checked";
+                            }
+                        }
+                    }
+                    <input type="radio" id="rad-@i" class="Answer form-radio-check form-radio" name="Answer" value="@option.AnswerText"  @flag/> <label for="rad-@i">@option.AnswerText</label>
                 </div>
             }
         }
@@ -82,7 +103,15 @@
                     @for (var i = 0; i < Model.QuestionAnswers.Count; i++)
                     {
                         var option = Model.QuestionAnswers.ElementAt(i);
-                        <option value="@option.AnswerText">@option.AnswerText</option>
+                        var flag = " ";
+                        if (Model.Answered != null)
+                        {
+                            if (Model.Answered == option.AnswerText)
+                            {
+                                flag = " selected=\"selected\"";
+                            }
+                        }
+                        <option value="@option.AnswerText" @flag>@option.AnswerText</option>
                     }
                 </select>
             </div>

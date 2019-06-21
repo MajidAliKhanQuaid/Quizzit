@@ -189,6 +189,16 @@ namespace Quizzit.Controllers
                 {
                     question.PrevQuestionID = prevQues.ID;
                 }
+                //
+                Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+                if (dictQA != null)
+                {
+                    if (dictQA.ContainsKey(question.ID))
+                    {
+                        question.Answered = dictQA[question.ID];
+                    }
+                }
+                //
                 viewAsString = RenderViewAsString("_QuestionControls", question);
                 return Json(new { status = true, view = viewAsString });
                 //return PartialView("_QuestionControls", question);
@@ -234,6 +244,8 @@ namespace Quizzit.Controllers
                 //return HttpNotFound();
             }
             //
+            Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+            //        
             if (qvm.NextQuestion == int.MinValue)
             {
                 //var question = db.Questions.Find(qvm.QuestionID);
@@ -243,7 +255,6 @@ namespace Quizzit.Controllers
                     // ************************************
                     // *********   Save Here    ***********
                     // ************************************
-                    Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
                     if (qvm.Answer != null)
                     {
                         if (dictQA.Keys.Contains(qvm.QuestionID))
@@ -313,6 +324,15 @@ namespace Quizzit.Controllers
                 viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
                 return Json(new { status = true, view = viewAsString });
                 //return PartialView("_QuestionControls", objQuestion);
+            }
+            //
+            //Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+            if (dictQA != null)
+            {
+                if (dictQA.ContainsKey(objQuestion.ID))
+                {
+                    objQuestion.Answered = dictQA[objQuestion.ID];
+                }
             }
             viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
             return Json(new { status = true, view = viewAsString });
