@@ -341,6 +341,11 @@ namespace Quizzit.Controllers
 
         public ActionResult Summary()
         {
+            if(Session["AnsweredQuestions"] == null)
+            {
+                return RedirectToAction("Index");
+            }
+            //
             List<SummaryVM> summaries = new List<SummaryVM>();
             //
             var qu = db.Questions.ToList();
@@ -375,6 +380,11 @@ namespace Quizzit.Controllers
 
         public ActionResult Thanks()
         {
+            if (Session["AnsweredQuestions"] == null)
+            {
+                return RedirectToAction("Index");
+            }
+            //
             return View();
         }
 
