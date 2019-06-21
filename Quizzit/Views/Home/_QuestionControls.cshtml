@@ -103,14 +103,7 @@
         </div>
         <div class="col-md-8"></div>
         <div class="col-md-2 text-right">
-            @{
-                var caption = "Next";
-                if (Model.NextQuestionID == int.MinValue)
-                {
-                    caption = "Submit";
-                }
-            }
-            <button type="submit" id="btnQuestion" class="btn btn-primary">@caption</button>
+            <button type="submit" id="btnQuestion" class="btn btn-primary">Next</button>
         </div>
     </div>
 

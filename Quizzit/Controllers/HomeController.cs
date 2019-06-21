@@ -84,9 +84,21 @@ namespace Quizzit.Controllers
                     }
                 }
             }
-            if(summary.Answer == null)
+            if (summary.Answer == null)
             {
                 summary.Answer = "N/A";
+            }
+            return summary;
+        }
+
+        [NonAction]
+        private SummaryVM GetSummaryObjFromDict(Question question, Dictionary<int, string> qas)
+        {
+            SummaryVM summary = new SummaryVM();
+            summary.Question = question.QuestionText;
+            if (qas.ContainsKey(question.ID))
+            {
+                summary.Answer = qas[question.ID];
             }
             return summary;
         }
@@ -193,30 +205,34 @@ namespace Quizzit.Controllers
         {
             string viewAsString = "";
             //
-            //if (qvm.Answer == null)
-            //{
-            //    //var question = db.Questions.Find(qvm.QuestionID);
-            //    var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
-            //    if (question != null)
-            //    {
-            //        if (question.QuestionType == (int)QuestionType.Checkbox ||
-            //        question.QuestionType == (int)QuestionType.Radio ||
-            //        question.QuestionType == (int)QuestionType.Dropdown)
-            //        {
-            //            question.ErrorMessage = "You must have atleast one option selected";
-            //        }
-            //        else
-            //        {
-            //            question.ErrorMessage = "Answer field can not be blank";
-            //        }
-            //        //
-            //        viewAsString = RenderViewAsString("_QuestionControls", question);
-            //        return Json(new { status = true, view = viewAsString });
-            //        //return PartialView("_QuestionControls", question);
-            //    }
-            //    return Json(new { status = false });
-            //    //return HttpNotFound();
-            //}
+            if (qvm.Answer == null)
+            {
+                //var question = db.Questions.Find(qvm.QuestionID);
+                var question = (Session["Questions"] as List<Question>).Find(x => x.ID == qvm.QuestionID);
+                if (question != null)
+                {
+                    var prevQue = db.Questions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
+                    question.PrevQuestionID = (prevQue == null ? int.MinValue : prevQue.ID);
+                    question.NextQuestionID = (question.NextQuestionID == null ? int.MinValue : question.NextQuestionID);
+
+                    if (question.QuestionType == (int)QuestionType.Checkbox ||
+                    question.QuestionType == (int)QuestionType.Radio ||
+                    question.QuestionType == (int)QuestionType.Dropdown)
+                    {
+                        question.ErrorMessage = "You must have atleast one option selected";
+                    }
+                    else
+                    {
+                        question.ErrorMessage = "Answer field can not be blank";
+                    }
+                    //
+                    viewAsString = RenderViewAsString("_QuestionControls", question);
+                    return Json(new { status = true, view = viewAsString });
+                    //return PartialView("_QuestionControls", question);
+                }
+                return Json(new { status = false });
+                //return HttpNotFound();
+            }
             //
             if (qvm.NextQuestion == int.MinValue)
             {
@@ -239,26 +255,26 @@ namespace Quizzit.Controllers
                             dictQA.Add(qvm.QuestionID, qvm.Answer);
                         }
                     }
-                    int UserID = USERID; // Convert.ToInt32();
-                    bool isDirty = false;
-                    //
-                    db.QuestionAndAnswers.RemoveRange(db.QuestionAndAnswers.Where(x => x.UserID == UserID));
-                    //
-                    foreach (var item in dictQA)
-                    {
-                        QuestionAndAnswer qs = new QuestionAndAnswer();
-                        //
-                        qs.UserID = UserID;
-                        //
-                        qs.QuestionsAndAnswers = $"{item.Key.ToString().PadRight(5, ' ')}{item.Value}";
-                        db.QuestionAndAnswers.Add(qs);
-                        isDirty = true;
-                    }
-                    //
-                    if (isDirty)
-                    {
-                        db.SaveChanges();
-                    }
+                    //int UserID = USERID; // Convert.ToInt32();
+                    //bool isDirty = false;
+                    ////
+                    //db.QuestionAndAnswers.RemoveRange(db.QuestionAndAnswers.Where(x => x.UserID == UserID));
+                    ////
+                    //foreach (var item in dictQA)
+                    //{
+                    //    QuestionAndAnswer qs = new QuestionAndAnswer();
+                    //    //
+                    //    qs.UserID = UserID;
+                    //    //
+                    //    qs.QuestionsAndAnswers = $"{item.Key.ToString().PadRight(5, ' ')}{item.Value}";
+                    //    db.QuestionAndAnswers.Add(qs);
+                    //    isDirty = true;
+                    //}
+                    ////
+                    //if (isDirty)
+                    //{
+                    //    db.SaveChanges();
+                    //}
                     //
                     return Json(new { status = true, url = Url.Action("Summary", "Home") });
                     //return PartialView("_ShowSummaryLink");
@@ -308,10 +324,11 @@ namespace Quizzit.Controllers
             List<SummaryVM> summaries = new List<SummaryVM>();
             //
             var qu = db.Questions.ToList();
-            var qas = db.QuestionAndAnswers.Where(x => x.UserID == USERID).ToList();
+            Dictionary<int, string> qas = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+            //var qas = db.QuestionAndAnswers.Where(x => x.UserID == USERID).ToList();
             foreach (var q in qu)
             {
-                SummaryVM summary = GetSummaryObj(q, qas);
+                SummaryVM summary = GetSummaryObjFromDict(q, qas);
                 summaries.Add(summary);
             }
 
@@ -334,6 +351,44 @@ namespace Quizzit.Controllers
             //}
             //return View(summaries);
             //return Content("<h1>Summary Page Goes Here</h1>");
+        }
+
+        public ActionResult Thanks()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public JsonResult Save()
+        {
+            if (Session["AnsweredQuestions"] == null)
+            {
+                return Json(new { result = false, errorType = "SESSION_EXPIRY", error = "Your session has expired" });
+            }
+
+            Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
+
+            bool isDirty = false;
+            //
+            db.QuestionAndAnswers.RemoveRange(db.QuestionAndAnswers.Where(x => x.UserID == USERID));
+            //
+            foreach (var item in dictQA)
+            {
+                QuestionAndAnswer qs = new QuestionAndAnswer();
+                //
+                qs.UserID = USERID;
+                //
+                qs.QuestionsAndAnswers = $"{item.Key.ToString().PadRight(5, ' ')}{item.Value}";
+                db.QuestionAndAnswers.Add(qs);
+                isDirty = true;
+            }
+            //
+            if (isDirty)
+            {
+                db.SaveChanges();
+                return Json(new { result = true });
+            }
+            return Json(new { result = false, errorType = "NO_DATA", error = "No data was found to be saved" });
         }
 
     }

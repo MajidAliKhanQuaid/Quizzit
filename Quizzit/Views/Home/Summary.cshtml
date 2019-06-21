@@ -37,4 +37,32 @@
     }
 </style>
 
+
+<script>
+    var btn = "<button class=\"btn btn-primary btnSave\">Submit</button>";
+    $(".logoRowLastCol").html(btn);
+    $(".btnSave").click(function () {
+        $.ajax({
+            url: "/Home/Save",
+            method: "POST",
+            data: {},
+            success: function (response) {
+                if (response.result === true) {
+                    window.location.href = "/Home/Thanks";
+                    return;
+                }
+                //
+                alert(response.error);
+                if (response.errorType === "SESSION_EXPIRY") {
+                    window.location.href = "/";
+                }
+            },
+            error: function (data) {
+                alert("Request could not be completed .. Try again ");
+            }
+        })
+        window.location.href = "/Home/Thanks";
+    });
+</script>
+
 <script src="~/Scripts/quizzit/_disablebrowserback.js"></script>
