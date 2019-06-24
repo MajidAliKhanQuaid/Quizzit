@@ -27,7 +27,23 @@ namespace Quizzit.Controllers
         [NonAction]
         private Question SearchQuestionById(int qid)
         {
-            return db.Questions.Find(qid);
+            //return db.Questions.Find(qid);
+
+            var question = db.Questions.Find(qid);
+            
+            // New Clients Modification
+            // On Checkbox and Radio load next from QuestionAnswers table
+
+            if (question.QuestionType == (int)QuestionType.Checkbox || question.QuestionType == (int)QuestionType.Radio)
+            {
+                var lastQuest = db.QuestionAnswers.Where(x => x.QuestionID == question.ID).OrderByDescending(x => x.ID).FirstOrDefault();
+                if(lastQuest != null)
+                {
+                    question.NextQuestionID = lastQuest.NextQuestionID;
+                }
+            }
+            //
+            return question;
         }
 
         private string RenderViewAsString(string viewName, object model)
@@ -341,7 +357,7 @@ namespace Quizzit.Controllers
 
         public ActionResult Summary()
         {
-            if(Session["AnsweredQuestions"] == null)
+            if (Session["AnsweredQuestions"] == null)
             {
                 return RedirectToAction("Index");
             }
