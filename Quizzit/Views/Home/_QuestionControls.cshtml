@@ -8,10 +8,44 @@
         nextQueId = int.MinValue;
     }
 }
+@{
+    if (Model.QuestionType == (int)QuestionType.Dropdown || Model.QuestionType == (int)QuestionType.Radio)
+    {
+        if (Model.Answered == null)
+        {
+            var x = Model.QuestionAnswers.FirstOrDefault();
+            if (x != null)
+            {
+                var n = x.NextQuestionID;
+                if (n == null)
+                {
+                    n = int.MinValue;
+                }
+                <input type="hidden" id="NextQuestion" value="@n" />
+            }
+        }
+        else
+        {
+            var otp = Model.QuestionAnswers.Where(x => x.AnswerText == Model.Answered).FirstOrDefault();
+            if (otp != null)
+            {
+                var nxt = otp.NextQuestionID;
+                if (otp.NextQuestionID == null)
+                {
+                    nxt = int.MinValue;
+                }
+                <input type="hidden" id="NextQuestion" value="@nxt" />
+            }
+        }
+    }
+    else
+    {
+        <input type="hidden" id="NextQuestion" value="@Model.NextQuestionID" />
+    }
+}
 
 <input type="hidden" id="PrevQuestion" value="@Model.PrevQuestionID" />
 <input type="hidden" id="QuestionID" value="@Model.ID" />
-<input type="hidden" id="NextQuestion" value="@Model.NextQuestionID" />
 
 <div class="jumbotron question-region fadeIn animated">
 
@@ -82,6 +116,13 @@
 
                 <div class="col-md-12">
                     @{
+
+                        var next = option.NextQuestionID;
+                        if (next == null)
+                        {
+                            next = int.MinValue;
+                        }
+
                         var flag = " ";
                         if (Model.Answered != null)
                         {
@@ -91,7 +132,7 @@
                             }
                         }
                     }
-                    <input type="radio" id="rad-@i" class="Answer form-radio-check form-radio" name="Answer" value="@option.AnswerText" @flag /> <label for="rad-@i">@option.AnswerText</label>
+                    <input type="radio" id="rad-@i" control-value="@next" class="Answer form-radio-check form-radio" name="Answer" value="@option.AnswerText" @flag /> <label for="rad-@i">@option.AnswerText</label>
                 </div>
             }
         }
@@ -102,7 +143,13 @@
                     //foreach (var option in question.Options)
                     @for (var i = 0; i < Model.QuestionAnswers.Count; i++)
                     {
+
                         var option = Model.QuestionAnswers.ElementAt(i);
+                        var next = option.NextQuestionID;
+                        if (next == null)
+                        {
+                            next = int.MinValue;
+                        }
                         var flag = " ";
                         if (Model.Answered != null)
                         {
@@ -111,7 +158,7 @@
                                 flag = " selected=\"selected\"";
                             }
                         }
-                        <option value="@option.AnswerText" @flag>@option.AnswerText</option>
+                        <option control-value="@next" value="@option.AnswerText" @flag>@option.AnswerText</option>
                     }
                 </select>
             </div>
@@ -178,6 +225,11 @@ else if (Model.QuestionType == (int)QuestionType.Radio)
                 var r = radios[i];
                 if (r.checked) {
                     radValue = r.value;
+                    //
+                    var nextId = r.getAttribute("control-value");
+                    document.getElementById("NextQuestion").value = nextId;
+                    alert("Next ID : " + nextId);
+                    //
                     break;
                 }
             }
@@ -195,7 +247,11 @@ else if (Model.QuestionType == (int)QuestionType.Dropdown)
     <script type="text/javascript">
         var dd = document.getElementsByClassName("form-dropdown")[0];
         dd.addEventListener('change', function (e) {
-            alert("Changed");
+            debugger;
+            var option = this.options[this.options.selectedIndex];
+            var nextId = option.getAttribute("control-value");
+            document.getElementById("NextQuestion").value = nextId;
+            alert("Next ID : " + nextId);
         }, false);
     </script>
 }
