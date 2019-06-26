@@ -30,11 +30,12 @@ namespace Quizzit.Controllers
             //return db.Questions.Find(qid);
 
             var question = db.Questions.Find(qid);
-            
+
             // New Clients Modification
             // On Checkbox and Radio load next from QuestionAnswers table
 
-            if (question.QuestionType == (int)QuestionType.Checkbox || question.QuestionType == (int)QuestionType.Radio || question.QuestionType == (int)QuestionType.Dropdown)
+            //if (question.QuestionType == (int)QuestionType.Checkbox || question.QuestionType == (int)QuestionType.Radio || question.QuestionType == (int)QuestionType.Dropdown)
+            if (question.QuestionType == (int)QuestionType.Radio || question.QuestionType == (int)QuestionType.Dropdown)
             {
                 var lastQuest = db.QuestionAnswers.Where(x => x.QuestionID == question.ID).OrderByDescending(x => x.ID).FirstOrDefault();
                 if(lastQuest != null)

@@ -91,14 +91,14 @@
                             }
                         }
                     }
-                    <input type="radio" id="rad-@i" class="Answer form-radio-check form-radio" name="Answer" value="@option.AnswerText"  @flag/> <label for="rad-@i">@option.AnswerText</label>
+                    <input type="radio" id="rad-@i" class="Answer form-radio-check form-radio" name="Answer" value="@option.AnswerText" @flag /> <label for="rad-@i">@option.AnswerText</label>
                 </div>
             }
         }
         else if (Model.QuestionType == (int)QuestionType.Dropdown)
         {
             <div class="col-md-12">
-                <select class="form-control Answer" id="Answer" name="Answer">
+                <select class="form-control form-dropdown Answer" id="Answer" name="Answer">
                     //foreach (var option in question.Options)
                     @for (var i = 0; i < Model.QuestionAnswers.Count; i++)
                     {
@@ -188,5 +188,14 @@ else if (Model.QuestionType == (int)QuestionType.Radio)
         for (var i = 0; i < radios.length; i++) {
             radios[i].addEventListener('click', SetRadioValue);
         }
+    </script>
+}
+else if (Model.QuestionType == (int)QuestionType.Dropdown)
+{
+    <script type="text/javascript">
+        var dd = document.getElementsByClassName("form-dropdown")[0];
+        dd.addEventListener('change', function (e) {
+            alert("Changed");
+        }, false);
     </script>
 }
