@@ -228,7 +228,7 @@ else if (Model.QuestionType == (int)QuestionType.Radio)
                     //
                     var nextId = r.getAttribute("control-value");
                     document.getElementById("NextQuestion").value = nextId;
-                    alert("Next ID : " + nextId);
+                    //alert("Next ID : " + nextId);
                     //
                     break;
                 }
@@ -251,7 +251,7 @@ else if (Model.QuestionType == (int)QuestionType.Dropdown)
             var option = this.options[this.options.selectedIndex];
             var nextId = option.getAttribute("control-value");
             document.getElementById("NextQuestion").value = nextId;
-            alert("Next ID : " + nextId);
+            //alert("Next ID : " + nextId);
         }, false);
     </script>
 }
