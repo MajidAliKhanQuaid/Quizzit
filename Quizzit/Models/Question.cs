@@ -13,6 +13,7 @@ namespace Quizzit.Models
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations.Schema;
 
+    //public partial class Question
     public partial class Question
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]

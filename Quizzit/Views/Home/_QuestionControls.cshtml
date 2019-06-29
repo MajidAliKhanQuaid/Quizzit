@@ -1,4 +1,4 @@
-﻿@model Quizzit.Models.Question
+﻿@model Quizzit.Models.QuestionA
 @using Quizzit.Models;
 
 @{
@@ -13,7 +13,7 @@
     {
         if (Model.Answered == null)
         {
-            var x = Model.QuestionAnswers.FirstOrDefault();
+            var x = Model.QAs.FirstOrDefault();
             if (x != null)
             {
                 var n = x.NextQuestionID;
@@ -26,7 +26,7 @@
         }
         else
         {
-            var otp = Model.QuestionAnswers.Where(x => x.AnswerText == Model.Answered).FirstOrDefault();
+            var otp = Model.QAs.Where(x => x.AnswerText == Model.Answered).FirstOrDefault();
             if (otp != null)
             {
                 var nxt = otp.NextQuestionID;
@@ -87,9 +87,9 @@
         {
             //foreach (var option in question.Options)
             <input type="hidden" id="Answer" name="Answer" value="@Model.Answered" />
-            for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+            for (var i = 0; i < Model.QAs.Count; i++)
             {
-                var option = Model.QuestionAnswers.ElementAt(i);
+                var option = Model.QAs[i];
                 <div class="col-md-12">
                     @{
                         var flag = " ";
@@ -110,9 +110,9 @@
         {
             //foreach (var option in question.Options)
             <input type="hidden" id="Answer" name="Answer" value="@Model.Answered" />
-            for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+            for (var i = 0; i < Model.QAs.Count; i++)
             {
-                var option = Model.QuestionAnswers.ElementAt(i);
+                var option = Model.QAs[i];
 
                 <div class="col-md-12">
                     @{
@@ -141,10 +141,10 @@
             <div class="col-md-12">
                 <select class="form-control form-dropdown Answer" id="Answer" name="Answer">
                     //foreach (var option in question.Options)
-                    @for (var i = 0; i < Model.QuestionAnswers.Count; i++)
+                    @for (var i = 0; i < Model.QAs.Count; i++)
                     {
 
-                        var option = Model.QuestionAnswers.ElementAt(i);
+                        var option = Model.QAs[i];
                         var next = option.NextQuestionID;
                         if (next == null)
                         {

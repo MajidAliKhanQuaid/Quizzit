@@ -135,34 +135,14 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\HomeController_Queries.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\Question.cs">
-      <DependentUpon>Quizzit.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\QuestionAndAnswer.cs">
-      <DependentUpon>Quizzit.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\QuestionAnswer.cs">
-      <DependentUpon>Quizzit.tt</DependentUpon>
-    </Compile>
+    <Compile Include="Models\QuestionA.cs" />
+    <Compile Include="Models\QuestionAndAnswerA.cs" />
+    <Compile Include="Models\QuestionAnswerA.cs" />
     <Compile Include="Models\QuestionType.cs" />
-    <Compile Include="Models\Quizzit.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Quizzit.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Quizzit.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Quizzit.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Models\Quizzit.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Quizzit.edmx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModel\QuestionFormVM.cs" />
     <Compile Include="ViewModel\SummaryVM.cs" />
@@ -180,25 +160,8 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
-    <Content Include="Models\Quizzit.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Quizzit.Context.cs</LastGenOutput>
-      <DependentUpon>Quizzit.edmx</DependentUpon>
-    </Content>
-    <Content Include="Models\Quizzit.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>Quizzit.edmx</DependentUpon>
-      <LastGenOutput>Quizzit.cs</LastGenOutput>
-    </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <EntityDeploy Include="Models\Quizzit.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>Quizzit.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <Content Include="Models\Quizzit.edmx.diagram">
-      <DependentUpon>Quizzit.edmx</DependentUpon>
-    </Content>
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
