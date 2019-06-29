@@ -2,6 +2,7 @@
 using Quizzit.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,192 @@ using System.Web.UI;
 
 namespace Quizzit.Controllers
 {
+    public class QuestionAnswerA
+    {
+        public int ID { get; set; }
+        public int QuestionID { get; set; }
+        public string AnswerText { get; set; }
+        public Nullable<int> NextQuestionID { get; set; }
+    }
+
+    public class QuestionAnswerFields
+    {
+        public static string ID { get; set; } = "ID";
+        public static string QuestionID { get; set; } = "QuestionText";
+        public static string AnswerText { get; set; } = "QuestionType";
+        public static string NextQuestionID { get; set; } = "NextQuestionID";
+    }
+
+    public class QuestionA
+    {
+        public int ID { get; set; }
+        public string QuestionText { get; set; }
+        public int QuestionType { get; set; }
+        public Nullable<int> NextQuestionID { get; set; }
+        public string Answered { get; set; }
+        public int PrevQuestionID { get; set; }
+        public string ErrorMessage { get; set; }
+        public List<QuestionAnswerA> QAs { get; set; }
+        public QuestionA()
+        {
+            QAs = new List<QuestionAnswerA>();
+        }
+    }
+
+    public class QuestionFields
+    {
+        public static string ID { get; set; } = "ID";
+        public static string QuestionText { get; set; } = "QuestionText";
+        public static string QuestionType { get; set; } = "QuestionType";
+        public static string NextQuestionID { get; set; } = "NextQuestionID";
+
+        public static string _ID { get; set; } = "_ID";
+        public static string _QuestionID { get; set; } = "_QuestionID";
+        public static string _AnswerText { get; set; } = "_AnswerText";
+        public static string _NextQuestionID { get; set; } = "_NextQuestionID";
+
+        public static string Answered { get; set; } = "Answered";
+        public static string PrevQuestionID { get; set; } = "PrevQuestionID";
+        public static string ErrorMessage { get; set; } = "ErrorMessage";
+    }
+
+    public partial class HomeController : Controller
+    {
+        static string CONNECTION_STRING = @"data source=HP-MAJIDALI\SQLEXPRESS;initial catalog=Quizzit;integrated security=True;";
+
+        #region Question Queries
+
+        public QuestionA GetPreviousQuestion(QuestionA question)
+        {
+            using (SqlConnection con = new SqlConnection(CONNECTION_STRING))
+            {
+                con.Open();
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = con;
+                    command.CommandText = string.Format("SELECT [Question].[ID], [Question].[QuestionText], [Question].[QuestionType], [Question].[NextQuestionID], [QuestionAnswer].[ID] AS _ID, [QuestionAnswer].[QuestionID] AS _QuestionID, [QuestionAnswer].[AnswerText] AS _AnswerText, [QuestionAnswer].[NextQuestionID] AS _NextQuestionID FROM [Question] LEFT JOIN [QuestionAnswer] ON [Question].[ID] = [QuestionAnswer].[QuestionID] WHERE [Question].[NextQuestionID] = {0}", question.ID);
+                    //command.CommandText = "SELECT * FROM [Question]";
+                    SqlDataReader reader = command.ExecuteReader();
+                    if (reader.HasRows)
+                    {
+                        List<QuestionA> qt = ReadQuestionsFromReader(reader);
+                        if(qt.Count > 0)
+                        {
+                            return qt[0];
+                        }
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public QuestionA FindQuestion(int Id)
+        {
+            using (SqlConnection con = new SqlConnection(CONNECTION_STRING))
+            {
+                con.Open();
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = con;
+                    command.CommandText = String.Format("SELECT [Question].[ID], [Question].[QuestionText], [Question].[QuestionType], [Question].[NextQuestionID], [QuestionAnswer].[ID] AS _ID, [QuestionAnswer].[QuestionID] AS _QuestionID, [QuestionAnswer].[AnswerText] AS _AnswerText, [QuestionAnswer].[NextQuestionID] AS _NextQuestionID FROM [Question] LEFT JOIN [QuestionAnswer] ON [Question].[ID] = [QuestionAnswer].[QuestionID] WHERE [Question].[ID] = {0}", Id);
+                    SqlDataReader reader = command.ExecuteReader();
+                    if (reader.HasRows)
+                    {
+                        List<QuestionA> qt = ReadQuestionsFromReader(reader);
+                        if(qt.Count > 0)
+                        {
+                            return qt[0];
+                        }
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public List<QuestionA> GetAllQuestions()
+        {
+            using (SqlConnection con = new SqlConnection(CONNECTION_STRING))
+            {
+                con.Open();
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = con;
+                    command.CommandText = "SELECT [Question].[ID], [Question].[QuestionText], [Question].[QuestionType], [Question].[NextQuestionID], [QuestionAnswer].[ID] AS _ID, [QuestionAnswer].[QuestionID] AS _QuestionID, [QuestionAnswer].[AnswerText] AS _AnswerText, [QuestionAnswer].[NextQuestionID] AS _NextQuestionID FROM [Question] LEFT JOIN [QuestionAnswer] ON [Question].[ID] = [QuestionAnswer].[QuestionID]";
+                    //command.CommandText = "SELECT * FROM [Question]";
+                    SqlDataReader reader = command.ExecuteReader();
+                    if (reader.HasRows)
+                    {
+                        List<QuestionA> qt = ReadQuestionsFromReader(reader);
+                        return qt;
+                    }
+                }
+            }
+            return new List<QuestionA>();
+        }
+
+        private QuestionAnswerA ReadQuestionForeignKeyData(SqlDataReader _reader)
+        {
+            QuestionAnswerA qA = new QuestionAnswerA();
+            //
+            if (_reader[QuestionFields._ID].GetType() != typeof(DBNull))
+            {
+                qA.ID = Convert.ToInt32(_reader[QuestionFields._ID]);
+                qA.QuestionID = Convert.ToInt32(_reader[QuestionFields._QuestionID]);
+                qA.AnswerText = _reader[QuestionFields._ID].ToString();
+                if (_reader[QuestionFields._NextQuestionID].GetType() == typeof(DBNull))
+                {
+                    qA.NextQuestionID = int.MinValue;
+                }
+                else
+                {
+                    qA.NextQuestionID = Convert.ToInt32(_reader[QuestionFields._NextQuestionID]);
+                }
+
+                return qA;
+            }
+            return null;
+        }
+
+        private List<QuestionA> ReadQuestionsFromReader(SqlDataReader _reader)
+        {
+            List<QuestionA> questions = new List<QuestionA>();
+            Dictionary<int, bool> dict = new Dictionary<int, bool>();
+            while (_reader.Read())
+            {
+                QuestionA question = new QuestionA();
+                question.ID = Convert.ToInt32(_reader[QuestionFields.ID]);
+                question.QuestionText = _reader[QuestionFields.QuestionText].ToString();
+                question.QuestionType = Convert.ToInt32(_reader[QuestionFields.QuestionType]);
+                if (_reader[QuestionFields.NextQuestionID].GetType() == typeof(DBNull))
+                {
+                    question.NextQuestionID = int.MinValue;
+                }
+                else
+                {
+                    question.NextQuestionID = Convert.ToInt32(_reader[QuestionFields.NextQuestionID]);
+                }
+                // Role of Dictionary is to make sure .. No duplication occurs in List
+                if (dict.ContainsKey(question.ID) == false)
+                {
+                    dict.Add(question.ID, true);
+                    questions.Add(question);
+                }
+                //
+                QuestionAnswerA qA = ReadQuestionForeignKeyData(_reader);
+                if (qA != null)
+                {
+                    questions[questions.Count - 1].QAs.Add(qA);
+                }
+            }
+            return questions;
+        }
+        
+        #endregion
+
+    }
+
     public partial class HomeController : Controller
     {
         static int USERID = 1;
@@ -38,14 +225,14 @@ namespace Quizzit.Controllers
             if (question.QuestionType == (int)QuestionType.Radio || question.QuestionType == (int)QuestionType.Dropdown)
             {
                 var lastQuest = db.QuestionAnswers.Where(x => x.QuestionID == question.ID).OrderByDescending(x => x.ID).FirstOrDefault();
-                if(lastQuest != null)
+                if (lastQuest != null)
                 {
                     question.NextQuestionID = lastQuest.NextQuestionID;
                 }
             }
             else
             {
-                if(question.NextQuestionID == null)
+                if (question.NextQuestionID == null)
                 {
                     var lastQuest = db.QuestionAnswers.Where(x => x.QuestionID == question.ID).OrderByDescending(x => x.ID).FirstOrDefault();
                     if (lastQuest != null)
@@ -148,6 +335,13 @@ namespace Quizzit.Controllers
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             LoadQuestionsIfNotExist();
+        }
+
+        public ActionResult Test()
+        {
+            var question = FindQuestion(1);
+            var questions = GetAllQuestions();
+            return Content("This is test view");
         }
 
         public ActionResult Startup()
