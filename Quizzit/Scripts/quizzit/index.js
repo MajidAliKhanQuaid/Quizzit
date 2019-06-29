@@ -54,6 +54,9 @@ function GetNextQuestion() {
             if (response.status === true) {
                 if (response.view) {
                     $("._placeholder").html(response.view);
+                    $("#btnBack").click(function () {
+                        GetPrevQuestion();
+                    });
                     $("#btnQuestion").click(function () {
                         GetNextQuestion();
                     });

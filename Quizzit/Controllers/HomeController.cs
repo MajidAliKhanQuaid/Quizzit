@@ -18,15 +18,32 @@ namespace Quizzit.Controllers
         {
             LoadQuestionsIfNotExist();
         }
-        
+
+        public ActionResult Index()
+        {
+            // Path Variable keeps track of Previous Question
+            Session["Path"] = new Stack<int>();
+            List<SummaryVM> summaries = new List<SummaryVM>();
+            var qas = GetAnsweredQuestionsByUserID(USERID);
+            foreach (var qa in qas)
+            {
+                string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
+                var question = FindQuestion(int.Parse(strQuestId));
+                //
+                SummaryVM summary = new SummaryVM();
+                summary.Question = question.QuestionText;
+                summary.Answer = qa.QuestionsAndAnswers.Substring(5);
+                summaries.Add(summary);
+            }
+            return View(summaries);
+        }
+
         public ActionResult Startup()
         {
-            //var questions = db.Questions.ToList();
             var questions = Session["Questions"] as List<QuestionA>;
             // Here Integer Holds Value for Question ID | String accounts for the Answer
             Session["AnsweredQuestions"] = new Dictionary<int, string>();
-            
-            //Question question = db.Questions.FirstOrDefault();
+           
             QuestionA question = questions.FirstOrDefault();
             if (question == null)
             {
@@ -45,23 +62,6 @@ namespace Quizzit.Controllers
             return View();
         }
 
-        public ActionResult Index()
-        {
-            List<SummaryVM> summaries = new List<SummaryVM>();
-            var qas = GetAnsweredQuestionsByUserID(USERID);
-            foreach (var qa in qas)
-            {
-                string strQuestId = qa.QuestionsAndAnswers.Substring(0, 5);
-                var question = FindQuestion(int.Parse(strQuestId));
-                //
-                SummaryVM summary = new SummaryVM();
-                summary.Question = question.QuestionText;
-                summary.Answer = qa.QuestionsAndAnswers.Substring(5);
-                summaries.Add(summary);
-            }
-            return View(summaries);
-        }
-
         [HttpPost]
         public JsonResult LoadPrevious(QuestionFormVM qvm)
         {
@@ -70,17 +70,20 @@ namespace Quizzit.Controllers
             // Load This Question
             // Search for its previous and return
             var questions = Session["Questions"] as List<QuestionA>;
-            var question = questions.Where(x => x.ID == qvm.PrevQuestion).FirstOrDefault();
+            int prevId = int.MinValue;
+            Stack<int> path =  Session["Path"] as Stack<int>;
+            if(path.Count > 0)
+            {
+                prevId = path.Pop();
+            }
+            var question = questions.Where(x => x.ID == prevId).FirstOrDefault();
             if (question != null)
             {
-                QuestionA prevQues = questions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
-                if (prevQues == null)
+                int prevQues = path.FirstOrDefault();
+                question.PrevQuestionID = int.MinValue;
+                if (prevQues > 0)
                 {
-                    question.PrevQuestionID = int.MinValue;
-                }
-                else
-                {
-                    question.PrevQuestionID = prevQues.ID;
+                    question.PrevQuestionID = prevQues;
                 }
                 //
                 Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
@@ -103,6 +106,8 @@ namespace Quizzit.Controllers
         {
             string viewAsString = "";
             //
+            Stack<int> path = Session["Path"] as Stack<int>;
+            //
             var questions = Session["Questions"] as List<QuestionA>;
             if (qvm.Answer == null)
             {
@@ -111,8 +116,16 @@ namespace Quizzit.Controllers
                 {
                     // Optimize
                     var dbQuestions = GetAllQuestions();
-                    var prevQue = dbQuestions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
-                    question.PrevQuestionID = (prevQue == null ? int.MinValue : prevQue.ID);
+                    //
+                    int prevQuesId = path.FirstOrDefault();
+                    question.PrevQuestionID = int.MinValue;
+                    if (prevQuesId > 0)
+                    {
+                        question.PrevQuestionID = prevQuesId;
+                    }
+                    //
+                    //var prevQue = dbQuestions.Where(x => x.NextQuestionID == question.ID).FirstOrDefault();
+                    //question.PrevQuestionID = (prevQue == null ? int.MinValue : prevQue.ID);
                     question.NextQuestionID = (question.NextQuestionID == null ? int.MinValue : question.NextQuestionID);
 
                     if (question.QuestionType == (int)QuestionType.Checkbox ||
@@ -133,7 +146,10 @@ namespace Quizzit.Controllers
             }
             //
             Dictionary<int, string> dictQA = (Session["AnsweredQuestions"] as Dictionary<int, string>);
-            //        
+            // Adds the current QuestionID as Tracked Path [ Used for Previous Question Numbering ]
+            path.Push(qvm.QuestionID);
+            //path.Add(qvm.QuestionID);
+            //
             if (qvm.NextQuestion == int.MinValue)
             {
                 var question = questions.Where(x => x.ID == qvm.QuestionID).FirstOrDefault();
@@ -172,16 +188,23 @@ namespace Quizzit.Controllers
             }
             //
             QuestionA objQuestion = SearchQuestionById(qvm.NextQuestion);
-            
-            QuestionA prevQues = questions.Where(x => x.NextQuestionID == objQuestion.ID).FirstOrDefault();
-            if (prevQues == null)
+
+            //
+            int prevQuesID = path.FirstOrDefault();
+            objQuestion.PrevQuestionID = int.MinValue;
+            if (prevQuesID> 0)
             {
-                objQuestion.PrevQuestionID = int.MinValue;
+                objQuestion.PrevQuestionID = prevQuesID;
             }
-            else
-            {
-                objQuestion.PrevQuestionID = prevQues.ID;
-            }
+            //QuestionA prevQues = questions.Where(x => x.NextQuestionID == objQuestion.ID).FirstOrDefault();
+            //if (prevQues == null)
+            //{
+            //    objQuestion.PrevQuestionID = int.MinValue;
+            //}
+            //else
+            //{
+            //    objQuestion.PrevQuestionID = prevQues.ID;
+            //}
             //
             if (objQuestion.NextQuestionID == null)
             {

@@ -185,14 +185,14 @@
 
 </div>
 
-@if (Model.PrevQuestionID > int.MinValue)
+@*@if (Model.PrevQuestionID > int.MinValue)
 {
     <script type="text/javascript">
         $("#btnBack").click(function () {
             GetPrevQuestion();
         });
     </script>
-}
+}*@
 
 @if (Model.QuestionType == (int)QuestionType.Checkbox)
 {
