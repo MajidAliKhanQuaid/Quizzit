@@ -37,20 +37,45 @@ function GetPrevQuestion() {
     })
 }
 
+function UploadAttachments() {
+    var attach = document.getElementsByClassName("attachments")[0];
+    var files = attach.files;
+    if (files) {
+        var answer = document.getElementById("Answer");
+        answer.value = '';
+        var ul = document.getElementById("fileNames");
+        ul.innerHTML = "";
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            // check _upload.js
+            var upload = new Upload(file, i);
+            // execute upload
+            upload.doUpload();
+            //
+            if (i > 0) {
+                answer.value += ";";
+            }
+            answer.value += file.name;
+        }
+        console.log(`${files.length} files were uploaded`);
+    }
+    return true;
+}
 
 function GetNextQuestion() {
+    // Get Files Attachements
+    // Upload them one by one
+    var x = document.getElementById("UploadingStatus");
+    if (x) {
+        if (x.value === "PENDING") {
+            UploadAttachments();
+        }
+    }
+    //
     var prevQuestId = document.getElementById("PrevQuestion").value;
     var questnId = document.getElementById("QuestionID").value;
     var nextQuestId = document.getElementById("NextQuestion").value;
     var answer = document.getElementById("Answer").value;
-    //
-    var x = document.getElementById("UploadingStatus");
-    if (x) {
-        if (x != "DONE") {
-            alert("File Uploading must be completed before jumping to next question");
-        }
-    }
-    if()
     //
     $.ajax({
         url: "/Home/SaveLoadNext",

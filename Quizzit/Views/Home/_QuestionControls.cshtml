@@ -1,13 +1,12 @@
 ﻿@model Quizzit.Models.QuestionA
 @using Quizzit.Models;
 
-@*
-        @if (Model.QuestionType == (int)QuestionType.ATT)
-        {
-            <link href="~/Content/filepond.min.css" rel="stylesheet" />
-            <script src="~/Scripts/filepond.min.js"></script>
+@{
+    if (Model.QuestionType == (int)QuestionType.ATT)
+    {
+        <script src="~/Scripts/quizzit/_upload.js"></script>
     }
-*@
+}
 
 @{
     var nextQueId = Model.NextQuestionID;
@@ -167,21 +166,25 @@
         }
         else if (Model.QuestionType == (int)QuestionType.ATT)
         {
+            var status = string.IsNullOrWhiteSpace(Model.Answered) || string.IsNullOrEmpty(Model.Answered) ? "PENDING" : "FINAL";
+
             <div class="col-md-12">
-                @{ 
-                    var status = "PENDING";
-                    if (Model.Answered != null)
-                    {
-                        if (Model.Answered.Length > 0)
-                        {
-                            status = "DONE";
-                        }
-                    }
-                }
                 <input type="hidden" id="UploadingStatus" value="@status" />
                 <input type="hidden" id="Answer" name="Answer" value="@Model.Answered" />
                 <input type="file" class="form-control attachments" multiple />
-                <ul id="fileNames"></ul>
+                @{
+                    string[] uploadedFiles = new string[] { };
+                    if (Model.Answered != null)
+                    {
+                        uploadedFiles = Model.Answered.Split(';');
+                    }
+                }
+                <ul id="fileNames">
+                    @foreach (var uFile in uploadedFiles)
+                    {
+                        <li>@uFile</li>
+                    }
+                </ul>
             </div>
         }
     </div>
@@ -231,6 +234,7 @@ else if (Model.QuestionType == (int)QuestionType.Radio)
 {
     <script type="text/javascript">
 
+
         var radios = document.getElementsByClassName("form-radio");
         function SetRadioValue() {
             var radValue = "";
@@ -259,6 +263,7 @@ else if (Model.QuestionType == (int)QuestionType.Dropdown)
 {
     <script type="text/javascript">
 
+
         var dd = document.getElementsByClassName("form-dropdown")[0];
         dd.addEventListener('change', function (e) {
             debugger;
@@ -274,13 +279,11 @@ else if (Model.QuestionType == (int)QuestionType.ATT)
     <script type="text/javascript">
         var dd = document.getElementsByClassName("attachments")[0];
         dd.addEventListener('change', function (e) {
-            var uploadingStatus = document.getElementById("UploadingStatus");
-            uploadingStatus.value = "PENDING";
-            debugger;
+            var uStatus = document.getElementById("UploadingStatus");
+            uStatus.value = "PENDING";
+            //
             var files = this.files;
             if (files) {
-
-                var answer = document.getElementById("Answer");
                 var ul = document.getElementById("fileNames");
                 ul.innerHTML = "";
                 for (var i = 0; i < files.length; i++) {
@@ -288,27 +291,10 @@ else if (Model.QuestionType == (int)QuestionType.ATT)
                     var li = document.createElement("li");
                     li.innerHTML = file.name;
                     ul.appendChild(li);
-                    //
-                    if (i > 0) {
-                        answer.value += ";";
-                    }
-                    answer.value += file.name;
-                    // check _upload.js
-                    var upload = new Upload(file);
-                    // execute upload
-                    upload.doUpload();
-                }
-                if (files.length > 0) {
-                    uploadingStatus.value = "DONE";
                 }
                 console.log(`${files.length} files were uploaded`);
             }
         }, false);
-
-
-        function UploadFile(_server, _file) {
-            
-        }
 
     </script>
 }

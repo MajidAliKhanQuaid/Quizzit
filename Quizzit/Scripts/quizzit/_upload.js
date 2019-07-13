@@ -1,5 +1,6 @@
-﻿var Upload = function (file) {
+﻿var Upload = function (file, sequence) {
     this.file = file;
+    this.sequence = sequence;
 };
 
 Upload.prototype.getType = function () {
@@ -16,14 +17,15 @@ Upload.prototype.doUpload = function () {
     var formData = new FormData();
     //
     var qId = document.getElementById("QuestionID").value;
-    //
+    
     // add assoc key values, this will be posts values
     formData.append("file", this.file, this.getName());
-    formData.append("question_id", qId);
+    formData.append("qid", qId);
+    formData.append("seq", this.sequence);
 
     $.ajax({
         type: "POST",
-        url: "script",
+        url: "/Home/FileUpload",
         xhr: function () {
             var myXhr = $.ajaxSettings.xhr();
             if (myXhr.upload) {
@@ -32,8 +34,7 @@ Upload.prototype.doUpload = function () {
             return myXhr;
         },
         success: function (data) {
-            console.log("One file is uploaded");
-            // your callback here
+            console.log(`${data.file} is uploaded`);
         },
         error: function (error) {
             // handle error

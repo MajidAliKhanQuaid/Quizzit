@@ -1,17 +1,14 @@
 ﻿using Quizzit.Models;
 using Quizzit.ViewModel;
-using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Web;
 using System.Web.Mvc;
-using System.Web.UI;
 
 namespace Quizzit.Controllers
 {
-   
+
     public partial class HomeController : Controller
     {
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
@@ -43,7 +40,7 @@ namespace Quizzit.Controllers
             var questions = Session["Questions"] as List<QuestionA>;
             // Here Integer Holds Value for Question ID | String accounts for the Answer
             Session["AnsweredQuestions"] = new Dictionary<int, string>();
-           
+
             QuestionA question = questions.FirstOrDefault();
             if (question == null)
             {
@@ -71,8 +68,8 @@ namespace Quizzit.Controllers
             // Search for its previous and return
             var questions = Session["Questions"] as List<QuestionA>;
             int prevId = int.MinValue;
-            Stack<int> path =  Session["Path"] as Stack<int>;
-            if(path.Count > 0)
+            Stack<int> path = Session["Path"] as Stack<int>;
+            if (path.Count > 0)
             {
                 prevId = path.Pop();
             }
@@ -134,6 +131,10 @@ namespace Quizzit.Controllers
                     {
                         question.ErrorMessage = "You must have atleast one option selected";
                     }
+                    else if (question.QuestionType == (int)QuestionType.ATT)
+                    {
+                        question.ErrorMessage = "You must have atleast one file selected";
+                    }
                     else
                     {
                         question.ErrorMessage = "Answer field can not be blank";
@@ -192,7 +193,7 @@ namespace Quizzit.Controllers
             //
             int prevQuesID = path.FirstOrDefault();
             objQuestion.PrevQuestionID = int.MinValue;
-            if (prevQuesID> 0)
+            if (prevQuesID > 0)
             {
                 objQuestion.PrevQuestionID = prevQuesID;
             }
@@ -223,7 +224,7 @@ namespace Quizzit.Controllers
             viewAsString = RenderViewAsString("_QuestionControls", objQuestion);
             return Json(new { status = true, view = viewAsString });
         }
-        
+
         public ActionResult Summary()
         {
             if (Session["AnsweredQuestions"] == null)
@@ -242,7 +243,7 @@ namespace Quizzit.Controllers
             }
             return View(summaries);
         }
-        
+
         public ActionResult Thanks()
         {
             if (Session["AnsweredQuestions"] == null)
@@ -268,7 +269,7 @@ namespace Quizzit.Controllers
             bool first = true;
             foreach (var item in dictQA)
             {
-                if(first == true)
+                if (first == true)
                 {
                     Queries.Add(string.Format("INSERT INTO [Quizzit].[dbo].[QuestionAndAnswer]([UserID],[QuestionsAndAnswers]) VALUES({0}, '{1}')", USERID, $"{item.Key.ToString().PadRight(5, ' ')}{item.Value}"));
                     first = false;
@@ -285,6 +286,29 @@ namespace Quizzit.Controllers
                 return Json(new { result = true });
             }
             return Json(new { result = false, errorType = "NO_DATA", error = "No data was found to be saved" });
+        }
+
+        // Params are file, questionid, sequence
+        public JsonResult FileUpload(HttpPostedFileBase file, int qid, int seq)
+        {
+            // Converts Question ID from '5' to '00005'
+            string pQId = qid.ToString().PadLeft(5, '0');
+            string pSId = seq.ToString().PadLeft(5, '0');
+            string fileName = $"{pQId}{pSId}{file.FileName}";
+
+            if (seq == 0)
+            {
+                DirectoryInfo di = new DirectoryInfo(Server.MapPath($@"~/App_Data/Temp"));
+                FileInfo[] fi = di.GetFiles();
+                var oldFiles = fi.Where(x => x.Name.Substring(0, 5) == pQId).ToArray();
+                foreach (var oFile in oldFiles)
+                {
+                    oFile.Delete();
+                }
+            }
+            //
+            file.SaveAs(Server.MapPath($@"~/App_Data/Temp/{fileName}"));
+            return Json(new { status = true, file = file.FileName });
         }
 
     }
