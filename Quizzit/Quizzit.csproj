@@ -156,6 +156,7 @@
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\custom-control-styles.css" />
+    <Content Include="Content\filepond.min.css" />
     <Content Include="Content\images\logo.png" />
     <Content Include="Content\quizzit\index.css" />
     <Content Include="favicon.ico" />
@@ -166,6 +167,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
+    <Content Include="Scripts\filepond.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.js" />
@@ -178,6 +180,7 @@
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\quizzit\_disablebrowserback.js" />
     <Content Include="Scripts\quizzit\index.js" />
+    <Content Include="Scripts\quizzit\_upload.js" />
     <Content Include="Scripts\venta\three.r92.min.js" />
     <Content Include="Scripts\venta\vanta.birds.min.js" />
     <Content Include="Scripts\venta\vanta.cells.min.js" />

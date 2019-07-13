@@ -1,6 +1,14 @@
 ﻿@model Quizzit.Models.QuestionA
 @using Quizzit.Models;
 
+@*
+        @if (Model.QuestionType == (int)QuestionType.ATT)
+        {
+            <link href="~/Content/filepond.min.css" rel="stylesheet" />
+            <script src="~/Scripts/filepond.min.js"></script>
+    }
+*@
+
 @{
     var nextQueId = Model.NextQuestionID;
     if (nextQueId == null)
@@ -55,12 +63,6 @@
                 @Model.QuestionText
             </p>
         </div>
-        @*<div class="col-md-1 text-right">
-                @if (nextQueId > 0)
-                {
-                    @Html.Raw(nextQueId);
-                }
-            </div>*@
     </div>
 
     @if (Model.ErrorMessage != null)
@@ -163,6 +165,25 @@
                 </select>
             </div>
         }
+        else if (Model.QuestionType == (int)QuestionType.ATT)
+        {
+            <div class="col-md-12">
+                @{ 
+                    var status = "PENDING";
+                    if (Model.Answered != null)
+                    {
+                        if (Model.Answered.Length > 0)
+                        {
+                            status = "DONE";
+                        }
+                    }
+                }
+                <input type="hidden" id="UploadingStatus" value="@status" />
+                <input type="hidden" id="Answer" name="Answer" value="@Model.Answered" />
+                <input type="file" class="form-control attachments" multiple />
+                <ul id="fileNames"></ul>
+            </div>
+        }
     </div>
     <div class="row submit-button-row">
         <div class="col-md-2">
@@ -184,15 +205,6 @@
     </div>
 
 </div>
-
-@*@if (Model.PrevQuestionID > int.MinValue)
-{
-    <script type="text/javascript">
-        $("#btnBack").click(function () {
-            GetPrevQuestion();
-        });
-    </script>
-}*@
 
 @if (Model.QuestionType == (int)QuestionType.Checkbox)
 {
@@ -218,6 +230,7 @@
 else if (Model.QuestionType == (int)QuestionType.Radio)
 {
     <script type="text/javascript">
+
         var radios = document.getElementsByClassName("form-radio");
         function SetRadioValue() {
             var radValue = "";
@@ -245,6 +258,7 @@ else if (Model.QuestionType == (int)QuestionType.Radio)
 else if (Model.QuestionType == (int)QuestionType.Dropdown)
 {
     <script type="text/javascript">
+
         var dd = document.getElementsByClassName("form-dropdown")[0];
         dd.addEventListener('change', function (e) {
             debugger;
@@ -253,5 +267,48 @@ else if (Model.QuestionType == (int)QuestionType.Dropdown)
             document.getElementById("NextQuestion").value = nextId;
             //alert("Next ID : " + nextId);
         }, false);
+    </script>
+}
+else if (Model.QuestionType == (int)QuestionType.ATT)
+{
+    <script type="text/javascript">
+        var dd = document.getElementsByClassName("attachments")[0];
+        dd.addEventListener('change', function (e) {
+            var uploadingStatus = document.getElementById("UploadingStatus");
+            uploadingStatus.value = "PENDING";
+            debugger;
+            var files = this.files;
+            if (files) {
+
+                var answer = document.getElementById("Answer");
+                var ul = document.getElementById("fileNames");
+                ul.innerHTML = "";
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    var li = document.createElement("li");
+                    li.innerHTML = file.name;
+                    ul.appendChild(li);
+                    //
+                    if (i > 0) {
+                        answer.value += ";";
+                    }
+                    answer.value += file.name;
+                    // check _upload.js
+                    var upload = new Upload(file);
+                    // execute upload
+                    upload.doUpload();
+                }
+                if (files.length > 0) {
+                    uploadingStatus.value = "DONE";
+                }
+                console.log(`${files.length} files were uploaded`);
+            }
+        }, false);
+
+
+        function UploadFile(_server, _file) {
+            
+        }
+
     </script>
 }

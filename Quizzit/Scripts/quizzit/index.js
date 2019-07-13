@@ -43,6 +43,15 @@ function GetNextQuestion() {
     var questnId = document.getElementById("QuestionID").value;
     var nextQuestId = document.getElementById("NextQuestion").value;
     var answer = document.getElementById("Answer").value;
+    //
+    var x = document.getElementById("UploadingStatus");
+    if (x) {
+        if (x != "DONE") {
+            alert("File Uploading must be completed before jumping to next question");
+        }
+    }
+    if()
+    //
     $.ajax({
         url: "/Home/SaveLoadNext",
         method: "POST",
